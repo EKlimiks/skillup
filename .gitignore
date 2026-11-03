@@ -31,3 +31,12 @@ desktop.ini
 .vscode/
 __pycache__/
 *.pyc
+
+# Временные скриншоты и отладочные папки
+_shots/
+_vps/
+_ref/
+_check/
+_bug/
+_recover/
+_shot/
