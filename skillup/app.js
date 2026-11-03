@@ -1,17 +1,17 @@
-/* в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
-   SkillUp вЂ” РёРЅС‚РµСЂС„РµР№СЃ.
+/* ═══════════════════════════════════════════════════════════════
+   SkillUp — интерфейс.
 
-   Р­РєСЂР°РЅС‹ РїРµСЂРµРєР»СЋС‡Р°СЋС‚СЃСЏ РІСЂСѓС‡РЅСѓСЋ, Р±РµР· Р±РёР±Р»РёРѕС‚РµРє: СЃРѕСЃС‚РѕСЏРЅРёРµ СЌРєСЂР°РЅР° РІ
-   РїРµСЂРµРјРµРЅРЅРѕР№, РѕС‚СЂРёСЃРѕРІРєР° вЂ” РѕР±С‹С‡РЅС‹Рµ С„СѓРЅРєС†РёРё, СЃРѕР·РґР°СЋС‰РёРµ СЂР°Р·РјРµС‚РєСѓ.
-   в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ */
+   Экраны переключаются вручную, без библиотек: состояние экрана в
+   переменной, отрисовка — обычные функции, создающие разметку.
+   ═══════════════════════════════════════════════════════════════ */
 
 const app = document.getElementById('app');
 let tab = 'today';
-let session = null;      // С‚РµРєСѓС‰РµРµ Р·Р°РЅСЏС‚РёРµ
-let lessonView = null;   // РѕС‚РєСЂС‹С‚С‹Р№ СѓСЂРѕРє
-let screen = null;       // РѕС‚РґРµР»СЊРЅС‹Р№ СЌРєСЂР°РЅ: 'auth' РёР»Рё null
+let session = null;      // текущее занятие
+let lessonView = null;   // открытый урок
+let screen = null;       // отдельный экран: 'auth' или null
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ СѓРІРµРґРѕРјР»РµРЅРёСЏ в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── уведомления ─────────────── */
 
 function toast(text, kind) {
   const box = document.createElement('div');
@@ -22,7 +22,7 @@ function toast(text, kind) {
   setTimeout(() => box.remove(), 3000);
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ РІСЃРїРѕРјРѕРіР°С‚РµР»СЊРЅРѕРµ в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── вспомогательное ─────────────── */
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -38,12 +38,12 @@ function progressRing(percent, size, stroke, color) {
   </svg>`;
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ СЌРєСЂР°РЅ В«РЎРµРіРѕРґРЅСЏВ» в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── экран «Сегодня» ─────────────── */
 
 function screenToday() {
   const lv = levelInfo(S.xp);
-  /* РїРѕРІС‚РѕСЂРµРЅРёРµ вЂ” С‚РѕР»СЊРєРѕ РІС‹СѓС‡РµРЅРЅС‹Рµ РєР°СЂС‚РѕС‡РєРё, Сѓ РєРѕС‚РѕСЂС‹С… РїРѕРґРѕС€С‘Р» СЃСЂРѕРє.
-     РќРѕРІС‹Рµ РєР°СЂС‚РѕС‡РєРё РїРѕРїР°РґР°СЋС‚ СЃСЋРґР° Р»РёС€СЊ С‡РµСЂРµР· СѓСЂРѕРєРё. */
+  /* повторение — только выученные карточки, у которых подошёл срок.
+     Новые карточки попадают сюда лишь через уроки. */
   const due = dueCards();
   const goal = S.settings.goal;
   const done = S.days[today()] || 0;
@@ -51,14 +51,14 @@ function screenToday() {
   const quests = questsToday();
   const queue = due.length;
   const initial = loggedIn() && auth.user && auth.user.name
-    ? auth.user.name.trim()[0].toUpperCase() : 'вє';
+    ? auth.user.name.trim()[0].toUpperCase() : '☺';
 
   const questRows = quests.list.map((q) => {
     const def = QUESTS.find((x) => x.id === q.id);
     const text = def.text.replace('{n}', q.need);
     const pct = Math.min(100, Math.round((q.progress / q.need) * 100));
     return `<div class="quest ${q.done ? 'is-done' : ''}">
-      <div class="quest__ico">${q.done ? 'вњ“' : 'в—‹'}</div>
+      <div class="quest__ico">${q.done ? '✓' : '○'}</div>
       <div class="quest__body">
         <div class="quest__text">${esc(text)}</div>
         <div class="quest__bar"><i style="width:${pct}%"></i></div>
@@ -69,38 +69,38 @@ function screenToday() {
 
   return `
   <div class="topbar">
-    <div class="topbar__brand">вљЎ Skill<span>Up</span></div>
+    <div class="topbar__brand">⚡ Skill<span>Up</span></div>
     <div class="topbar__right">
-      <span class="topbar__gems" title="Р“РµРјС‹ вЂ” РІР°Р»СЋС‚Р° РїСЂРёР»РѕР¶РµРЅРёСЏ">рџ’Ћ ${S.gems || 0}</span>
-      <button class="topbar__me" id="to-me" aria-label="РџСЂРѕС„РёР»СЊ">${esc(initial)}</button>
+      <span class="topbar__gems" title="Гемы — валюта приложения">💎 ${S.gems || 0}</span>
+      <button class="topbar__me" id="to-me" aria-label="Профиль">${esc(initial)}</button>
     </div>
   </div>
 
   <div class="hero">
     <div class="hero__top">
       <div>
-        <div class="hero__hi">РЎРµРіРѕРґРЅСЏ</div>
+        <div class="hero__hi">Сегодня</div>
         <div class="hero__streak">
-          <span class="flame">рџ”Ґ</span>
-          <b>${S.streak}</b> ${plural(S.streak, 'РґРµРЅСЊ', 'РґРЅСЏ', 'РґРЅРµР№')} РїРѕРґСЂСЏРґ
-          ${S.freezes > 0 ? `<span class="freeze" title="Р—Р°РјРѕСЂРѕР·РєР° СЃРѕС…СЂР°РЅРёС‚ СЃРµСЂРёСЋ РїСЂРё РїСЂРѕРїСѓСЃРєРµ">вќ„ ${S.freezes}</span>` : ''}
+          <span class="flame">🔥</span>
+          <b>${S.streak}</b> ${plural(S.streak, 'день', 'дня', 'дней')} подряд
+          ${S.freezes > 0 ? `<span class="freeze" title="Заморозка сохранит серию при пропуске">❄ ${S.freezes}</span>` : ''}
         </div>
-        <div class="hero__hearts" title="РЎРµСЂРґРµС‡РєРё: РѕС€РёР±РєР° вЂ” РјРёРЅСѓСЃ РѕРґРЅРѕ, РІРµСЂРЅС‘С‚СЃСЏ С‡РµСЂРµР· 30 РјРёРЅСѓС‚">
-          ${'вќ¤пёЏ'.repeat(Math.max(0, heartsNow()))}
+        <div class="hero__hearts" title="Сердечки: ошибка — минус одно, вернётся через 30 минут">
+          ${'❤️'.repeat(Math.max(0, heartsNow()))}
         </div>
       </div>
       <div class="lvl">
         ${progressRing(lv.percent, 74, 6, '#a78bfa')}
         <div class="lvl__in">
           <b>${lv.level}</b>
-          <span>СѓСЂРѕРІРµРЅСЊ</span>
+          <span>уровень</span>
         </div>
       </div>
     </div>
-    <div class="hero__xp">${lv.into} / ${lv.need} XP РґРѕ СЃР»РµРґСѓСЋС‰РµРіРѕ СѓСЂРѕРІРЅСЏ</div>
-    <div class="hero__grow" title="Р’РёР·СѓР°Р»СЊРЅС‹Р№ РїСЂРѕРіСЂРµСЃСЃ: СЂР°СЃС‚РµРЅРёРµ СЂР°СЃС‚С‘С‚ СЃ СѓСЂРѕРІРЅРµРј">
+    <div class="hero__xp">${lv.into} / ${lv.need} XP до следующего уровня</div>
+    <div class="hero__grow" title="Визуальный прогресс: растение растёт с уровнем">
       <span class="hero__grow-ico">${plantStage()[0]}</span>
-      <span>${plantStage()[1]} В· СѓСЂРѕРІРµРЅСЊ ${lv.level}</span>
+      <span>${plantStage()[1]} · уровень ${lv.level}</span>
     </div>
   </div>
 
@@ -109,47 +109,47 @@ function screenToday() {
       ${progressRing(percent, 120, 9, percent >= 100 ? '#4ade80' : '#a78bfa')}
       <div class="goal__in">
         <b>${done}</b>
-        <span>РёР· ${goal}</span>
+        <span>из ${goal}</span>
       </div>
     </div>
     <div class="goal__text">
-      <div class="goal__title">${percent >= 100 ? 'Р¦РµР»СЊ РґРЅСЏ РІС‹РїРѕР»РЅРµРЅР°!' : 'Р¦РµР»СЊ РЅР° СЃРµРіРѕРґРЅСЏ'}</div>
+      <div class="goal__title">${percent >= 100 ? 'Цель дня выполнена!' : 'Цель на сегодня'}</div>
       <div class="goal__sub">${percent >= 100
-        ? 'РћС‚Р»РёС‡РЅР°СЏ СЂР°Р±РѕС‚Р°. РњРѕР¶РЅРѕ РїСЂРѕРґРѕР»Р¶РёС‚СЊ РёР»Рё РѕС‚РґРѕС…РЅСѓС‚СЊ.'
-        : `РћСЃС‚Р°Р»РѕСЃСЊ ${goal - done} ${plural(goal - done, 'РѕС‚РІРµС‚', 'РѕС‚РІРµС‚Р°', 'РѕС‚РІРµС‚РѕРІ')}`}</div>
+        ? 'Отличная работа. Можно продолжить или отдохнуть.'
+        : `Осталось ${goal - done} ${plural(goal - done, 'ответ', 'ответа', 'ответов')}`}</div>
       <button class="btn btn--primary" id="start">
-        ${queue > 0 ? `РџРѕРІС‚РѕСЂРёС‚СЊ В· ${queue} ${plural(queue, 'РєР°СЂС‚РѕС‡РєР°', 'РєР°СЂС‚РѕС‡РєРё', 'РєР°СЂС‚РѕС‡РµРє')}` : 'Р’СЃС‘ РїРѕРІС‚РѕСЂРµРЅРѕ вЂ” РЅР°С‡РЅРёС‚Рµ СѓСЂРѕРє'}
+        ${queue > 0 ? `Повторить · ${queue} ${plural(queue, 'карточка', 'карточки', 'карточек')}` : 'Всё повторено — начните урок'}
       </button>
     </div>
   </div>
 
   <button class="card--mapbtn" id="to-map">
-    <span class="mapbtn__ico">вЊ</span>
+    <span class="mapbtn__ico">⌘</span>
     <span class="mapbtn__body">
-      <b>РљР°СЂС‚Р° СЂР°Р·РІРёС‚РёСЏ</b>
-      <i>РЈСЂРѕРєРё РѕС‚РєСЂС‹РІР°СЋС‚СЃСЏ РїРѕ РѕС‡РµСЂРµРґРё вЂ” СЃРјРѕС‚СЂРёС‚Рµ, С‡С‚Рѕ РґР°Р»СЊС€Рµ</i>
+      <b>Карта развития</b>
+      <i>Уроки открываются по очереди — смотрите, что дальше</i>
     </span>
-    <span class="mapbtn__go">вЂє</span>
+    <span class="mapbtn__go">›</span>
   </button>
 
   <button class="card--mapbtn" id="to-focus">
-    <span class="mapbtn__ico">вЏ±</span>
+    <span class="mapbtn__ico">⏱</span>
     <span class="mapbtn__body">
-      <b>Р РµР¶РёРј С„РѕРєСѓСЃРёСЂРѕРІРєРё</b>
-      <i>РўР°Р№РјРµСЂ Р±РµР· РѕС‚РІР»РµС‡РµРЅРёР№ вЂ” Р·Р° СЃРµСЃСЃРёСЋ РѕРїС‹С‚ Рё Р°РєС‚РёРІРЅС‹Р№ РґРµРЅСЊ</i>
+      <b>Режим фокусировки</b>
+      <i>Таймер без отвлечений — за сессию опыт и активный день</i>
     </span>
-    <span class="mapbtn__go">вЂє</span>
+    <span class="mapbtn__go">›</span>
   </button>
 
-  <h2 class="sect">Р—Р°РґР°РЅРёСЏ РЅР° РґРµРЅСЊ</h2>
+  <h2 class="sect">Задания на день</h2>
   <div class="card card--pad">${questRows}</div>
 
-  ${isMonday() ? `<h2 class="sect">РС‚РѕРіРё РїСЂРѕС€Р»РѕР№ РЅРµРґРµР»Рё</h2>
+  ${isMonday() ? `<h2 class="sect">Итоги прошлой недели</h2>
   <div class="card card--pad">
     ${weekCard()}
   </div>` : ''}
 
-  <h2 class="sect">РџСЂРѕРґРѕР»Р¶РёС‚СЊ РѕР±СѓС‡РµРЅРёРµ</h2>
+  <h2 class="sect">Продолжить обучение</h2>
   <div class="skills-mini">
     ${pickedSkills().map((s) => {
       const p = skillProgress(s);
@@ -161,12 +161,12 @@ function screenToday() {
     }).join('')}
   </div>
 
-  <h2 class="sect">РљР°Рє СЌС‚Рѕ СЂР°Р±РѕС‚Р°РµС‚</h2>
+  <h2 class="sect">Как это работает</h2>
   <div class="card card--pad muted-note">
-    РљР°СЂС‚РѕС‡РєРё РІРѕР·РІСЂР°С‰Р°СЋС‚СЃСЏ РїРѕ Р°Р»РіРѕСЂРёС‚РјСѓ РёРЅС‚РµСЂРІР°Р»СЊРЅРѕРіРѕ РїРѕРІС‚РѕСЂРµРЅРёСЏ: С‚Рѕ, С‡С‚Рѕ РІС‹
-    РїРѕРјРЅРёС‚Рµ С…РѕСЂРѕС€Рѕ, РїРѕРєР°Р·С‹РІР°РµС‚СЃСЏ РІСЃС‘ СЂРµР¶Рµ, Р° С‚СЂСѓРґРЅРѕРµ вЂ” С‡Р°С‰Рµ. Р­С‚Рѕ СЂР°Р±РѕС‚Р°РµС‚
-    РЅРµ В«РїРѕС‚РѕРјСѓ С‡С‚Рѕ РЅР°РґРѕВ», Р° РїРѕ РјР°С‚РµРјР°С‚РёРєРµ: РёРЅС‚РµСЂРІР°Р» СѓРјРЅРѕР¶Р°РµС‚СЃСЏ РЅР°
-    РєРѕСЌС„С„РёС†РёРµРЅС‚ Р»С‘РіРєРѕСЃС‚Рё РєР°Р¶РґРѕР№ РєР°СЂС‚РѕС‡РєРё.
+    Карточки возвращаются по алгоритму интервального повторения: то, что вы
+    помните хорошо, показывается всё реже, а трудное — чаще. Это работает
+    не «потому что надо», а по математике: интервал умножается на
+    коэффициент лёгкости каждой карточки.
   </div>`;
 }
 
@@ -177,10 +177,10 @@ const plural = (n, one, few, many) => {
   return many;
 };
 
-/* Р Р°СЃС‚РµРЅРёРµ РЅР° В«РЎРµРіРѕРґРЅСЏВ» СЂР°СЃС‚С‘С‚ РІРјРµСЃС‚Рµ СЃ СѓСЂРѕРІРЅРµРј */
+/* Растение на «Сегодня» растёт вместе с уровнем */
 const PLANT_STAGES = [
-  ['рџЊ±', 'СЂРѕСЃС‚РѕРє'], ['рџЊї', 'РїРѕР±РµРіРё'], ['рџЄґ', 'СЂР°СЃС‚РµРЅРёРµ'],
-  ['рџЊі', 'РґРµСЂРµРІРѕ'], ['рџЊІ', 'Р»РµСЃ'], ['рџЏ†', 'РІРµСЂС€РёРЅР°'],
+  ['🌱', 'росток'], ['🌿', 'побеги'], ['🪴', 'растение'],
+  ['🌳', 'дерево'], ['🌲', 'лес'], ['🏆', 'вершина'],
 ];
 const plantStage = () => PLANT_STAGES[Math.min(5, Math.floor(levelInfo(S.xp).level / 2))];
 
@@ -189,21 +189,21 @@ const isMonday = () => new Date().getDay() === 1;
 function weekCard() {
   const w = lastWeekSummary();
   const items = [
-    [w.answers, 'РѕС‚РІРµС‚РѕРІ'], [w.minutes, 'РјРёРЅСѓС‚'], [w.lessons, 'СѓСЂРѕРєРѕРІ'],
+    [w.answers, 'ответов'], [w.minutes, 'минут'], [w.lessons, 'уроков'],
   ];
   return `<div class="wk-sum">${items.map(([v, l]) => `
     <div class="wk-sum__i"><b>${v}</b><span>${l}</span></div>`).join('')}
   </div>
   <p class="wk-sum__res">${w.answers === 0
-    ? 'РќР° РїСЂРѕС€Р»РѕР№ РЅРµРґРµР»Рµ Р±С‹Р»Рѕ С‚РёС…Рѕ вЂ” РЅР°С‡РЅРёС‚Рµ РЅРѕРІСѓСЋ СЃ РѕРґРЅРѕР№ РєР°СЂС‚РѕС‡РєРё.'
-    : 'РҐРѕСЂРѕС€Р°СЏ РЅРµРґРµР»СЏ. РџСЂРѕРґРѕР»Р¶Р°Р№С‚Рµ РІ С‚РѕРј Р¶Рµ РґСѓС…Рµ!'}</p>`;
+    ? 'На прошлой неделе было тихо — начните новую с одной карточки.'
+    : 'Хорошая неделя. Продолжайте в том же духе!'}</p>`;
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ СЌРєСЂР°РЅ В«РќР°РІС‹РєРёВ» в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── экран «Навыки» ─────────────── */
 
 function screenSkills() {
-  return `<h1 class="h1">РќР°РІС‹РєРё</h1>
-  <p class="lead">Р§РµС‚С‹СЂРµ РЅР°РїСЂР°РІР»РµРЅРёСЏ. Р’РЅСѓС‚СЂРё РєР°Р¶РґРѕРіРѕ вЂ” РєРѕСЂРѕС‚РєРёРµ СѓСЂРѕРєРё РїРѕ 3вЂ“5 РјРёРЅСѓС‚.</p>
+  return `<h1 class="h1">Навыки</h1>
+  <p class="lead">Четыре направления. Внутри каждого — короткие уроки по 3–5 минут.</p>
   ${SKILLS.map((s) => {
     const p = skillProgress(s);
     return `<div class="card card--skill" style="--accent:${s.color}">
@@ -223,12 +223,12 @@ function screenSkills() {
           const target = nextLesson(s);
           const locked = !done && target && target.id !== l.id;
           return `<button class="lesson ${done ? 'is-done' : ''}" data-lesson="${l.id}" ${locked ? 'disabled' : ''}>
-            <span class="lesson__dot" style="${done ? `background:${s.color}` : ''}">${locked ? 'рџ”’' : ''}</span>
+            <span class="lesson__dot" style="${done ? `background:${s.color}` : ''}">${locked ? '🔒' : ''}</span>
             <span class="lesson__body">
               <span class="lesson__title">${esc(l.title)}</span>
-              <span class="lesson__sub">${l.cards.length} ${plural(l.cards.length, 'РєР°СЂС‚РѕС‡РєР°', 'РєР°СЂС‚РѕС‡РєРё', 'РєР°СЂС‚РѕС‡РµРє')} В· ${l.minutes} РјРёРЅ${opened && !done ? ' В· РЅР°С‡Р°С‚' : ''}${locked ? ' В· Р·Р°РєСЂС‹С‚' : ''}</span>
+              <span class="lesson__sub">${l.cards.length} ${plural(l.cards.length, 'карточка', 'карточки', 'карточек')} · ${l.minutes} мин${opened && !done ? ' · начат' : ''}${locked ? ' · закрыт' : ''}</span>
             </span>
-            <span class="lesson__go">${locked ? 'рџ”’' : 'вЂє'}</span>
+            <span class="lesson__go">${locked ? '🔒' : '›'}</span>
           </button>`;
         }).join('')}
       </div>
@@ -236,7 +236,7 @@ function screenSkills() {
   }).join('')}`;
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ СЌРєСЂР°РЅ В«РЎС‚Р°С‚РёСЃС‚РёРєР°В» в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── экран «Статистика» ─────────────── */
 
 function screenStats() {
   const cells = heatmap(18);
@@ -249,37 +249,37 @@ function screenStats() {
     return `<i class="cell cell--${c.future ? 'x' : lvl}" title="${c.date}: ${c.count}"></i>`;
   }).join('');
 
-  return `<h1 class="h1">РЎС‚Р°С‚РёСЃС‚РёРєР°</h1>
+  return `<h1 class="h1">Статистика</h1>
   <div class="grid2">
-    ${statCard(total, 'РІСЃРµРіРѕ РѕС‚РІРµС‚РѕРІ')}
-    ${statCard(acc + '%', 'РїСЂР°РІРёР»СЊРЅС‹С…')}
-    ${statCard(S.bestStreak, 'Р»СѓС‡С€Р°СЏ СЃРµСЂРёСЏ')}
-    ${statCard(S.stats.lessonsDone, 'СѓСЂРѕРєРѕРІ РїСЂРѕР№РґРµРЅРѕ')}
-    ${statCard(activeDays(), 'РґРЅРµР№ Р·Р°РЅСЏС‚РёР№')}
-    ${statCard(lv.level, 'СѓСЂРѕРІРµРЅСЊ')}
+    ${statCard(total, 'всего ответов')}
+    ${statCard(acc + '%', 'правильных')}
+    ${statCard(S.bestStreak, 'лучшая серия')}
+    ${statCard(S.stats.lessonsDone, 'уроков пройдено')}
+    ${statCard(activeDays(), 'дней занятий')}
+    ${statCard(lv.level, 'уровень')}
   </div>
 
-  <h2 class="sect">РђРєС‚РёРІРЅРѕСЃС‚СЊ Р·Р° 18 РЅРµРґРµР»СЊ</h2>
+  <h2 class="sect">Активность за 18 недель</h2>
   <div class="card card--pad">
     <div class="heat">${heat}</div>
     <div class="heat__legend">
-      <span>РјРµРЅСЊС€Рµ</span>
+      <span>меньше</span>
       <i class="cell cell--0"></i><i class="cell cell--1"></i><i class="cell cell--2"></i>
       <i class="cell cell--3"></i><i class="cell cell--4"></i>
-      <span>Р±РѕР»СЊС€Рµ</span>
+      <span>больше</span>
     </div>
   </div>
 
-  <h2 class="sect">РљР°СЂС‚РѕС‡РєРё РїРѕ СѓСЂРѕРІРЅСЏРј</h2>
+  <h2 class="sect">Карточки по уровням</h2>
   <div class="card card--pad">${cardBreakdown()}</div>
 
-  <h2 class="sect">РЎСЂР°РІРЅРµРЅРёРµ РЅРµРґРµР»СЊ</h2>
+  <h2 class="sect">Сравнение недель</h2>
   <div class="card card--pad">${weekCompare()}</div>`;
 }
 
 /**
- * РЎСЂР°РІРЅРµРЅРёРµ С‚РµРєСѓС‰РµР№ РЅРµРґРµР»Рё СЃ РїСЂРѕС€Р»РѕР№: РІРёРґРЅРѕ, СЃС‚Р°Р»Рѕ Р»Рё Р·Р°РЅРёРјР°С‚СЊСЃСЏ
- * Р±РѕР»СЊС€Рµ РёР»Рё РЅР°СЃС‚СѓРїРёР» СЃРїР°Рґ.
+ * Сравнение текущей недели с прошлой: видно, стало ли заниматься
+ * больше или наступил спад.
  */
 function weekCompare() {
   const now = new Date();
@@ -307,24 +307,24 @@ function weekCompare() {
 
   return `<div class="wk">
     <div class="wk__row">
-      <span class="wk__k">Р­С‚Р° РЅРµРґРµР»СЏ</span>
+      <span class="wk__k">Эта неделя</span>
       <span class="wk__bar"><i style="width:${(thisWeek / max) * 100}%"></i></span>
       <b class="wk__v">${thisWeek}</b>
     </div>
     <div class="wk__row">
-      <span class="wk__k">РџСЂРѕС€Р»Р°СЏ</span>
+      <span class="wk__k">Прошлая</span>
       <span class="wk__bar wk__bar--dim"><i style="width:${(lastWeek / max) * 100}%"></i></span>
       <b class="wk__v">${lastWeek}</b>
     </div>
   </div>
   <div class="wk__res ${diff > 0 ? 'up' : diff < 0 ? 'down' : ''}">
     ${lastWeek === 0 && thisWeek === 0
-      ? 'РџРѕРєР° РЅРµС‚ РґР°РЅРЅС‹С… Р·Р° СЌС‚Рё РЅРµРґРµР»Рё'
+      ? 'Пока нет данных за эти недели'
       : diff > 0
-        ? `РќР° ${diff} ${plural(diff, 'РѕС‚РІРµС‚', 'РѕС‚РІРµС‚Р°', 'РѕС‚РІРµС‚РѕРІ')} Р±РѕР»СЊС€Рµ, С‡РµРј РЅР° РїСЂРѕС€Р»РѕР№ РЅРµРґРµР»Рµ (+${pct}%)`
+        ? `На ${diff} ${plural(diff, 'ответ', 'ответа', 'ответов')} больше, чем на прошлой неделе (+${pct}%)`
         : diff < 0
-          ? `РќР° ${-diff} ${plural(-diff, 'РѕС‚РІРµС‚', 'РѕС‚РІРµС‚Р°', 'РѕС‚РІРµС‚РѕРІ')} РјРµРЅСЊС€Рµ, С‡РµРј РЅР° РїСЂРѕС€Р»РѕР№ РЅРµРґРµР»Рµ`
-          : 'РЎС‚РѕР»СЊРєРѕ Р¶Рµ, СЃРєРѕР»СЊРєРѕ РЅР° РїСЂРѕС€Р»РѕР№ РЅРµРґРµР»Рµ'}
+          ? `На ${-diff} ${plural(-diff, 'ответ', 'ответа', 'ответов')} меньше, чем на прошлой неделе`
+          : 'Столько же, сколько на прошлой неделе'}
   </div>`;
 }
 
@@ -333,16 +333,16 @@ function statCard(value, label) {
 }
 
 function cardBreakdown() {
-  const buckets = { 'РЅРѕРІС‹Рµ': 0, '1вЂ“6 РґРЅРµР№': 0, '1вЂ“4 РЅРµРґРµР»Рё': 0, 'Р±РѕР»СЊС€Рµ РјРµСЃСЏС†Р°': 0 };
+  const buckets = { 'новые': 0, '1–6 дней': 0, '1–4 недели': 0, 'больше месяца': 0 };
   for (const skill of SKILLS) {
     for (const lesson of skill.lessons) {
       lesson.cards.forEach((c, i) => {
         const st = S.cards[`${lesson.id}#${i}`];
         if (!st) return;
-        if (st.interval === 0) buckets['РЅРѕРІС‹Рµ']++;
-        else if (st.interval <= 6) buckets['1вЂ“6 РґРЅРµР№']++;
-        else if (st.interval < 30) buckets['1вЂ“4 РЅРµРґРµР»Рё']++;
-        else buckets['Р±РѕР»СЊС€Рµ РјРµСЃСЏС†Р°']++;
+        if (st.interval === 0) buckets['новые']++;
+        else if (st.interval <= 6) buckets['1–6 дней']++;
+        else if (st.interval < 30) buckets['1–4 недели']++;
+        else buckets['больше месяца']++;
       });
     }
   }
@@ -355,19 +355,19 @@ function cardBreakdown() {
     </div>`).join('');
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ СЌРєСЂР°РЅ В«РќР°РіСЂР°РґС‹В» в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── экран «Награды» ─────────────── */
 
 function screenAwards() {
-  /* СЃРµРєСЂРµС‚РЅС‹Рµ РґРѕСЃС‚РёР¶РµРЅРёСЏ РЅРµ РІРёРґРЅС‹, РїРѕРєР° РЅРµ РѕС‚РєСЂС‹С‚С‹ */
+  /* секретные достижения не видны, пока не открыты */
   const visible = ACHIEVEMENTS.filter((a) => !a.hidden || S.achievements[a.id]);
   const got = Object.keys(S.achievements).length;
-  return `<h1 class="h1">РќР°РіСЂР°РґС‹</h1>
-  <p class="lead">РћС‚РєСЂС‹С‚Рѕ ${got} РёР· ${ACHIEVEMENTS.length}. РЎРµРєСЂРµС‚РЅС‹Рµ РїРѕСЏРІР»СЏСЋС‚СЃСЏ С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ РѕС‚РєСЂС‹С‚РёСЏ.</p>
+  return `<h1 class="h1">Награды</h1>
+  <p class="lead">Открыто ${got} из ${ACHIEVEMENTS.length}. Секретные появляются только после открытия.</p>
   <div class="awards">
     ${visible.map((a) => {
       const on = !!S.achievements[a.id];
       return `<div class="award ${on ? 'is-on' : ''}">
-        <div class="award__ico">${on ? a.icon : 'рџ”’'}</div>
+        <div class="award__ico">${on ? a.icon : '🔒'}</div>
         <div class="award__name">${esc(a.name)}</div>
         <div class="award__text">${esc(a.text)}</div>
         ${on ? `<div class="award__date">${new Date(S.achievements[a.id]).toLocaleDateString('ru-RU')}</div>` : ''}
@@ -376,7 +376,7 @@ function screenAwards() {
   </div>`;
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ СЌРєСЂР°РЅ В«РЇВ» в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── экран «Я» ─────────────── */
 
 function screenMe() {
   const lv = levelInfo(S.xp);
@@ -390,128 +390,128 @@ function screenMe() {
     ? `<div class="card card--pad who">
         <div class="who__ava">${esc(initial)}</div>
         <div class="who__body">
-          <b>${esc(auth.user?.name || 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ')}</b>
+          <b>${esc(auth.user?.name || 'Пользователь')}</b>
           <i>${esc(auth.user?.email || '')}</i>
           <span class="synced"></span>
         </div>
       </div>
       <div class="card card--pad">
         <p class="muted-note" style="margin:0 0 14px">
-          РџСЂРѕРіСЂРµСЃСЃ СЃРѕС…СЂР°РЅСЏРµС‚СЃСЏ РІ Р°РєРєР°СѓРЅС‚ Рё РїРµСЂРµРЅРѕСЃРёС‚СЃСЏ РјРµР¶РґСѓ СѓСЃС‚СЂРѕР№СЃС‚РІР°РјРё:
-          РЅР°С‡Р°Р»Рё РЅР° С‚РµР»РµС„РѕРЅРµ вЂ” РїСЂРѕРґРѕР»Р¶РёР»Рё РЅР° РєРѕРјРїСЊСЋС‚РµСЂРµ.
+          Прогресс сохраняется в аккаунт и переносится между устройствами:
+          начали на телефоне — продолжили на компьютере.
         </p>
-        <button class="btn btn--ghost" id="sync-now">РЎРѕС…СЂР°РЅРёС‚СЊ СЃРµР№С‡Р°СЃ</button>
-        <button class="btn btn--quiet" id="logout">Р’С‹Р№С‚Рё РёР· Р°РєРєР°СѓРЅС‚Р°</button>
-        <button class="btn btn--quiet danger" id="del-acc">РЈРґР°Р»РёС‚СЊ Р°РєРєР°СѓРЅС‚ Рё РґР°РЅРЅС‹Рµ</button>
+        <button class="btn btn--ghost" id="sync-now">Сохранить сейчас</button>
+        <button class="btn btn--quiet" id="logout">Выйти из аккаунта</button>
+        <button class="btn btn--quiet danger" id="del-acc">Удалить аккаунт и данные</button>
       </div>`
     : `<div class="card card--pad">
-        <b class="me__h">РђРєРєР°СѓРЅС‚</b>
-        <p class="muted-note">РЎРµР№С‡Р°СЃ РїСЂРѕРіСЂРµСЃСЃ С…СЂР°РЅРёС‚СЃСЏ С‚РѕР»СЊРєРѕ РІ СЌС‚РѕРј С‚РµР»РµС„РѕРЅРµ.
-        РђРєРєР°СѓРЅС‚ РїРѕР·РІРѕР»РёС‚ РїРµСЂРµРЅРѕСЃРёС‚СЊ РµРіРѕ РјРµР¶РґСѓ СѓСЃС‚СЂРѕР№СЃС‚РІР°РјРё Рё РЅРµ РїРѕС‚РµСЂСЏС‚СЊ
-        РїСЂРё РѕС‡РёСЃС‚РєРµ Р±СЂР°СѓР·РµСЂР°.</p>
-        <button class="btn btn--primary" id="to-auth">Р’РѕР№С‚Рё РёР»Рё СЃРѕР·РґР°С‚СЊ Р°РєРєР°СѓРЅС‚</button>
+        <b class="me__h">Аккаунт</b>
+        <p class="muted-note">Сейчас прогресс хранится только в этом телефоне.
+        Аккаунт позволит переносить его между устройствами и не потерять
+        при очистке браузера.</p>
+        <button class="btn btn--primary" id="to-auth">Войти или создать аккаунт</button>
       </div>`;
 
-  return `<button class="icon back" id="back-today">вЂ№</button>
-  <h1 class="h1">РџСЂРѕС„РёР»СЊ</h1>
+  return `<button class="icon back" id="back-today">‹</button>
+  <h1 class="h1">Профиль</h1>
 
   ${account}
 
   <div class="btn-row" style="margin-top:14px">
-    <button class="btn btn--ghost" id="to-stats">РЎС‚Р°С‚РёСЃС‚РёРєР°</button>
-    <button class="btn btn--ghost" id="to-awards">РќР°РіСЂР°РґС‹ В· ${got}</button>
+    <button class="btn btn--ghost" id="to-stats">Статистика</button>
+    <button class="btn btn--ghost" id="to-awards">Награды · ${got}</button>
   </div>
 
   <div class="grid2" style="margin-top:14px">
-    ${statCard(lv.level, 'СѓСЂРѕРІРµРЅСЊ')}
-    ${statCard(S.xp, 'РѕРїС‹С‚Р°')}
-    ${statCard(S.streak, 'СЃРµСЂРёСЏ РґРЅРµР№')}
-    ${statCard(acc + '%', 'С‚РѕС‡РЅРѕСЃС‚СЊ')}
-    ${statCard(got, 'РЅР°РіСЂР°РґС‹')}
-    ${statCard(S.stats.mastered, 'РѕСЃРІРѕРµРЅРѕ')}
+    ${statCard(lv.level, 'уровень')}
+    ${statCard(S.xp, 'опыта')}
+    ${statCard(S.streak, 'серия дней')}
+    ${statCard(acc + '%', 'точность')}
+    ${statCard(got, 'награды')}
+    ${statCard(S.stats.mastered, 'освоено')}
   </div>
 
-  <h2 class="sect">РќР°СЃС‚СЂРѕР№РєРё</h2>
+  <h2 class="sect">Настройки</h2>
   <div class="card card--pad">
     <label class="row">
-      <span>Р¦РµР»СЊ РІ РґРµРЅСЊ</span>
+      <span>Цель в день</span>
       <input type="range" id="goal" min="5" max="60" step="5" value="${S.settings.goal}">
       <b id="goalVal">${S.settings.goal}</b>
     </label>
     <label class="row">
-      <span>РќР°РїРѕРјРёРЅР°РЅРёРµ РІРµС‡РµСЂРѕРј</span>
+      <span>Напоминание вечером</span>
       <input type="checkbox" id="remind" ${S.settings.reminder ? 'checked' : ''}>
     </label>
     <label class="row">
-      <span>Р—РІСѓРєРё Рё РІРёР±СЂР°С†РёСЏ</span>
+      <span>Звуки и вибрация</span>
       <input type="checkbox" id="sound" ${S.settings.sound !== false ? 'checked' : ''}>
     </label>
-    <button class="btn btn--quiet" id="redo-onboard">РџСЂРѕР№С‚Рё Р·РЅР°РєРѕРјСЃС‚РІРѕ Р·Р°РЅРѕРІРѕ</button>
-    <button class="btn btn--quiet" id="to-qr">QR-РєРѕРґ РґР»СЏ СѓСЃС‚Р°РЅРѕРІРєРё</button>
-    <button class="btn btn--quiet" id="export">РЎРєР°С‡Р°С‚СЊ РїСЂРѕРіСЂРµСЃСЃ С„Р°Р№Р»РѕРј</button>
-    <button class="btn btn--quiet" id="import">Р—Р°РіСЂСѓР·РёС‚СЊ РїСЂРѕРіСЂРµСЃСЃ РёР· С„Р°Р№Р»Р°</button>
+    <button class="btn btn--quiet" id="redo-onboard">Пройти знакомство заново</button>
+    <button class="btn btn--quiet" id="to-qr">QR-код для установки</button>
+    <button class="btn btn--quiet" id="export">Скачать прогресс файлом</button>
+    <button class="btn btn--quiet" id="import">Загрузить прогресс из файла</button>
     <input type="file" id="import-file" accept=".json,application/json" style="display:none">
-    <button class="btn btn--quiet danger" id="reset">РЎР±СЂРѕСЃРёС‚СЊ РІРµСЃСЊ РїСЂРѕРіСЂРµСЃСЃ</button>
+    <button class="btn btn--quiet danger" id="reset">Сбросить весь прогресс</button>
   </div>
 
-  <h2 class="sect">РЈСЃС‚Р°РЅРѕРІРєР° РЅР° С‚РµР»РµС„РѕРЅ</h2>
+  <h2 class="sect">Установка на телефон</h2>
   <div class="card card--pad">
-    <p class="muted-note" style="margin:0 0 12px">РџСЂРёР»РѕР¶РµРЅРёРµ СЃС‚Р°РІРёС‚СЃСЏ РЅР° РґРѕРјР°С€РЅРёР№ СЌРєСЂР°РЅ: СЃРІРѕСЏ РёРєРѕРЅРєР°, РїРѕР»РЅС‹Р№ СЌРєСЂР°РЅ, СЂР°Р±РѕС‚Р° Р±РµР· РёРЅС‚РµСЂРЅРµС‚Р°.</p>
-    <button class="btn btn--ghost" id="install-app" style="display:none">РЈСЃС‚Р°РЅРѕРІРёС‚СЊ РїСЂРёР»РѕР¶РµРЅРёРµ</button>
+    <p class="muted-note" style="margin:0 0 12px">Приложение ставится на домашний экран: своя иконка, полный экран, работа без интернета.</p>
+    <button class="btn btn--ghost" id="install-app" style="display:none">Установить приложение</button>
     <p class="muted-note" id="install-hint" style="display:none;margin:0">
-      Android: Chrome РїСЂРµРґР»РѕР¶РёС‚ СѓСЃС‚Р°РЅРѕРІРєСѓ СЃР°Рј вЂ” РјРµРЅСЋ В«в‹®В» в†’ В«РЈСЃС‚Р°РЅРѕРІРёС‚СЊ РїСЂРёР»РѕР¶РµРЅРёРµВ».
-      iPhone: Safari в†’ В«РџРѕРґРµР»РёС‚СЊСЃСЏВ» в†’ В«РќР° СЌРєСЂР°РЅ Р”РѕРјРѕР№В».
-      QR-РєРѕРґ РґР»СЏ СЃРєР°РЅРёСЂРѕРІР°РЅРёСЏ вЂ” <a href="qr.html" style="color:var(--accent)">Р·РґРµСЃСЊ</a>.
+      Android: Chrome предложит установку сам — меню «⋮» → «Установить приложение».
+      iPhone: Safari → «Поделиться» → «На экран Домой».
+      QR-код для сканирования — <a href="qr.html" style="color:var(--accent)">здесь</a>.
     </p>
   </div>
 
-  <h2 class="sect">РњР°РіР°Р·РёРЅ</h2>
+  <h2 class="sect">Магазин</h2>
   <div class="card card--pad">
-    <p class="muted-note" style="margin:0 0 12px">РЈ РІР°СЃ рџ’Ћ <b style="color:var(--text)">${S.gems || 0}</b>. Р“РµРјС‹ РґР°СЋС‚СЃСЏ Р·Р° РІРµСЂРЅС‹Рµ РѕС‚РІРµС‚С‹, СѓСЂРѕРєРё, Р·Р°РґР°РЅРёСЏ Рё С„РѕРєСѓСЃ.</p>
+    <p class="muted-note" style="margin:0 0 12px">У вас 💎 <b style="color:var(--text)">${S.gems || 0}</b>. Гемы даются за верные ответы, уроки, задания и фокус.</p>
     <div class="shop">
       <div class="shop__i">
-        <div class="shop__ico">вќ¤пёЏ</div>
+        <div class="shop__ico">❤️</div>
         <div class="shop__body">
-          <b>Р’РѕСЃСЃС‚Р°РЅРѕРІРёС‚СЊ СЃРµСЂРґРµС‡РєРё</b>
-          <i>РЎСЂР°Р·Сѓ 5 РёР· 5 вЂ” РЅРµ Р¶РґР°С‚СЊ РїРѕР»С‡Р°СЃР°</i>
+          <b>Восстановить сердечки</b>
+          <i>Сразу 5 из 5 — не ждать полчаса</i>
         </div>
-        <button class="shop__buy" id="buy-hearts" ${heartsNow() >= 5 ? 'disabled' : ''}>30 рџ’Ћ</button>
+        <button class="shop__buy" id="buy-hearts" ${heartsNow() >= 5 ? 'disabled' : ''}>30 💎</button>
       </div>
       <div class="shop__i">
-        <div class="shop__ico">вќ„пёЏ</div>
+        <div class="shop__ico">❄️</div>
         <div class="shop__body">
-          <b>Р—Р°РјРѕСЂРѕР·РєР° СЃРµСЂРёРё</b>
-          <i>РЎРїР°СЃС‘С‚ СЃРµСЂРёСЋ РїСЂРё РїСЂРѕРїСѓСЃРєРµ В· СЃРµР№С‡Р°СЃ ${S.freezes}</i>
+          <b>Заморозка серии</b>
+          <i>Спасёт серию при пропуске · сейчас ${S.freezes}</i>
         </div>
-        <button class="shop__buy" id="buy-freeze">20 рџ’Ћ</button>
+        <button class="shop__buy" id="buy-freeze">20 💎</button>
       </div>
     </div>
   </div>
 
-  <h2 class="sect">Р›РёРіР° РЅРµРґРµР»Рё</h2>
+  <h2 class="sect">Лига недели</h2>
   <div class="card card--pad">
-    <p class="muted-note" style="margin:0 0 12px">РЎРѕСЂРµРІРЅРѕРІР°РЅРёРµ РїРѕ РѕРїС‹С‚Сѓ Р·Р° РЅРµРґРµР»СЋ. РќСѓР¶РµРЅ Р°РєРєР°СѓРЅС‚ вЂ” С‚Р°Р±Р»РёС†Р° СЃС‡РёС‚Р°РµС‚СЃСЏ РЅР° СЃРµСЂРІРµСЂРµ РјРµР¶РґСѓ РІСЃРµРјРё РёРіСЂРѕРєР°РјРё.</p>
-    <button class="btn btn--ghost" id="to-league">РћС‚РєСЂС‹С‚СЊ Р»РёРіСѓ</button>
+    <p class="muted-note" style="margin:0 0 12px">Соревнование по опыту за неделю. Нужен аккаунт — таблица считается на сервере между всеми игроками.</p>
+    <button class="btn btn--ghost" id="to-league">Открыть лигу</button>
   </div>
 
-  <h2 class="sect">Рћ РїСЂРёР»РѕР¶РµРЅРёРё</h2>
+  <h2 class="sect">О приложении</h2>
   <div class="card card--pad muted-note">
-    <p style="margin:0 0 10px"><b style="color:var(--text)">SkillUp</b> вЂ” РєРѕСЂРѕС‚РєРёРµ СѓСЂРѕРєРё
-    СЃ РёРЅС‚РµСЂРІР°Р»СЊРЅС‹Рј РїРѕРІС‚РѕСЂРµРЅРёРµРј. РљР°СЂС‚РѕС‡РєРё РІРѕР·РІСЂР°С‰Р°СЋС‚СЃСЏ РїРѕ Р°Р»РіРѕСЂРёС‚РјСѓ SM-2:
-    С‚Рѕ, С‡С‚Рѕ РІС‹ РїРѕРјРЅРёС‚Рµ С…РѕСЂРѕС€Рѕ, РїРѕРєР°Р·С‹РІР°РµС‚СЃСЏ СЂРµР¶Рµ, Р° С‚СЂСѓРґРЅРѕРµ вЂ” С‡Р°С‰Рµ.</p>
-    <p style="margin:0">Р Р°Р±РѕС‚Р°РµС‚ Р±РµР· РёРЅС‚РµСЂРЅРµС‚Р°. РџСЂРѕРіСЂРµСЃСЃ С…СЂР°РЅРёС‚СЃСЏ РІ С‚РµР»РµС„РѕРЅРµ,
-    Р° СЃ Р°РєРєР°СѓРЅС‚РѕРј вЂ” РµС‰С‘ Рё РЅР° СЃРµСЂРІРµСЂРµ.</p>
+    <p style="margin:0 0 10px"><b style="color:var(--text)">SkillUp</b> — короткие уроки
+    с интервальным повторением. Карточки возвращаются по алгоритму SM-2:
+    то, что вы помните хорошо, показывается реже, а трудное — чаще.</p>
+    <p style="margin:0">Работает без интернета. Прогресс хранится в телефоне,
+    а с аккаунтом — ещё и на сервере.</p>
   </div>`;
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ Р·Р°РЅСЏС‚РёРµ РєР°СЂС‚РѕС‡РєР°РјРё в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── занятие карточками ─────────────── */
 
 function startSession() {
-  /* РџСЂР°РєС‚РёРєР° вЂ” С‚РѕР»СЊРєРѕ РєР°СЂС‚РѕС‡РєРё, Сѓ РєРѕС‚РѕСЂС‹С… РїРѕРґРѕС€С‘Р» СЃСЂРѕРє РїРѕРІС‚РѕСЂРµРЅРёСЏ.
-     РќРѕРІС‹Рµ РєР°СЂС‚РѕС‡РєРё РёР·СѓС‡Р°СЋС‚СЃСЏ РІ СѓСЂРѕРєР°С…, Р° РЅРµ В«РІ Р»РѕР±В». */
+  /* Практика — только карточки, у которых подошёл срок повторения.
+     Новые карточки изучаются в уроках, а не «в лоб». */
   const due = dueCards();
   if (!due.length) {
-    toast('Р’СЃС‘ РїРѕРІС‚РѕСЂРµРЅРѕ вЂ” РѕС‚РєСЂРѕР№С‚Рµ РЅРѕРІС‹Р№ СѓСЂРѕРє', 'info');
+    toast('Всё повторено — откройте новый урок', 'info');
     tab = 'skills';
     render();
     return;
@@ -520,17 +520,17 @@ function startSession() {
   render();
 }
 
-/* РќРѕСЂРјР°Р»РёР·Р°С†РёСЏ РѕС‚РІРµС‚Р°: СЂРµРіРёСЃС‚СЂ, Р·РЅР°РєРё РїСЂРµРїРёРЅР°РЅРёСЏ Рё Р»РёС€РЅРёРµ РїСЂРѕР±РµР»С‹
-   РЅРµ СЃС‡РёС‚Р°СЋС‚СЃСЏ РѕС€РёР±РєРѕР№ вЂ” В«To GoВ», В«to go!В» Рё В«to  goВ» СЂР°РІРЅРѕС†РµРЅРЅС‹. */
+/* Нормализация ответа: регистр, знаки препинания и лишние пробелы
+   не считаются ошибкой — «To Go», «to go!» и «to  go» равноценны. */
 const normAns = (s) => String(s || '').toLowerCase()
   .replace(/[^\p{L}\p{N} ]/gu, ' ').replace(/\s+/g, ' ').trim();
 
 /**
- * РџСЂРѕРІРµСЂРєР° РѕС‚РІРµС‚Р°. РЎС‚СЂРѕРіР°СЏ СЃРІРµСЂРєР° СЂР°Р·РґСЂР°Р¶Р°РµС‚: В«7 С‡Р°СЃРѕРІВ» Рё В«70В» вЂ” С‚РѕР¶Рµ
- * РїСЂР°РІРёР»СЊРЅС‹Рµ РѕС‚РІРµС‚С‹. РџРѕСЌС‚РѕРјСѓ РєСЂРѕРјРµ С‚РѕС‡РЅРѕРіРѕ СЃРѕРІРїР°РґРµРЅРёСЏ СЂР°Р±РѕС‚Р°СЋС‚:
- *   вЂў С‡РёСЃР»Р° вЂ” С‚РѕС‡РЅРѕРµ СЃРѕРІРїР°РґРµРЅРёРµ С‡РёСЃР»Р° РёР»Рё РїРѕРїР°РґР°РЅРёРµ РІ РґРёР°РїР°Р·РѕРЅ (В«60вЂ“80В»);
- *   вЂў СЃР»РѕРІР° вЂ” РІР°СЂРёР°РЅС‚ РґРѕР»Р¶РµРЅ РІСЃС‚СЂРµС‚РёС‚СЊСЃСЏ РІ РѕС‚РІРµС‚Рµ С†РµР»С‹Рј СЃР»РѕРІРѕРј
- *     (В«РјРѕР·РіВ» Р·Р°СЃС‡РёС‚Р°РµС‚ В«СЌС‚Рѕ РјРѕР·РіВ», РЅРѕ РЅРµ В«РјРѕР·Р¶РµС‡РѕРєВ»).
+ * Проверка ответа. Строгая сверка раздражает: «7 часов» и «70» — тоже
+ * правильные ответы. Поэтому кроме точного совпадения работают:
+ *   • числа — точное совпадение числа или попадание в диапазон («60–80»);
+ *   • слова — вариант должен встретиться в ответе целым словом
+ *     («мозг» засчитает «это мозг», но не «мозжечок»).
  */
 function checkAnswer(given, accept) {
   const g = normAns(given);
@@ -540,7 +540,7 @@ function checkAnswer(given, accept) {
     if (!n) continue;
     if (g === n) return true;
 
-    /* С‡РёСЃР»РѕРІРѕР№ РѕС‚РІРµС‚ */
+    /* числовой ответ */
     const numG = g.match(/\d+(?:[.,]\d+)?/);
     const numsA = n.match(/\d+(?:[.,]\d+)?/g) || [];
     if (numG && numsA.length) {
@@ -550,7 +550,7 @@ function checkAnswer(given, accept) {
       continue;
     }
 
-    /* СЃР»РѕРІРµСЃРЅС‹Р№ РѕС‚РІРµС‚ вЂ” С†РµР»С‹Рј СЃР»РѕРІРѕРј */
+    /* словесный ответ — целым словом */
     const re = new RegExp('(^|\\s)' + n + '(\\s|$)');
     if (n.length >= 3 && re.test(g)) return true;
     const re2 = new RegExp('(^|\\s)' + g + '(\\s|$)');
@@ -559,7 +559,7 @@ function checkAnswer(given, accept) {
   return false;
 }
 
-/** РћС†РµРЅРєР° РѕС‚РІРµС‚Р° Р»СЋР±РѕРіРѕ С‚РёРїР°: РІРµСЂРЅРѕ в†’ q=4, РѕС€РёР±РєР° в†’ q=1 Рё РјРёРЅСѓСЃ СЃРµСЂРґРµС‡РєРѕ. */
+/** Оценка ответа любого типа: верно → q=4, ошибка → q=1 и минус сердечко. */
 function gradeAnswer(ok, picked) {
   const item = session.queue[session.index];
   const fresh = !S.cards[item.id];
@@ -572,40 +572,40 @@ function gradeAnswer(ok, picked) {
   }
   review(item.id, ok ? 4 : 1);
   session.answer = { ok, picked };
-  if (!ok) session.queue.push(item);   // РѕС€РёР±СЃСЏ вЂ” РєР°СЂС‚РѕС‡РєР° РІРµСЂРЅС‘С‚СЃСЏ РІ РєРѕРЅС†Рµ Р·Р°РЅСЏС‚РёСЏ
-  /* РѕС‚РєР»РёРє: Р·РІСѓРє Рё Р»С‘РіРєР°СЏ РІРёР±СЂР°С†РёСЏ РЅР° РѕС€РёР±РєРµ (Android) */
+  if (!ok) session.queue.push(item);   // ошибся — карточка вернётся в конце занятия
+  /* отклик: звук и лёгкая вибрация на ошибке (Android) */
   if (ok) snd.ok(); else { snd.bad(); try { navigator.vibrate && navigator.vibrate(60); } catch (e) {} }
   render();
   scheduleSync();
-  /* СЃРµСЂРґРµС‡РєРё РєРѕРЅС‡РёР»РёСЃСЊ вЂ” Р·Р°РЅСЏС‚РёРµ РЅР° РїР°СѓР·Рµ СЃ СЌРєСЂР°РЅРѕРј РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅРёСЏ */
+  /* сердечки кончились — занятие на паузе с экраном восстановления */
   if (S.hearts <= 0) {
     screen = 'nohearts';
     render();
   }
 }
 
-/** РџР»Р°С€РєР° СЂРµР·СѓР»СЊС‚Р°С‚Р° СЃ РїСЂР°РІРёР»СЊРЅС‹Рј РѕС‚РІРµС‚РѕРј Рё РѕР±СЉСЏСЃРЅРµРЅРёРµРј. */
+/** Плашка результата с правильным ответом и объяснением. */
 function feedbackHtml(ok, card) {
   const right = card.options ? esc(card.options[card.a]) : (card.a != null ? esc(card.a) : '');
   const sound = !card.options && speakable(card.a)
-    ? ' <button class="speak" id="speak" title="РџСЂРѕРёР·РЅРµСЃС‚Рё">рџ”Љ</button>' : '';
+    ? ' <button class="speak" id="speak" title="Произнести">🔊</button>' : '';
   return `<div class="fb ${ok ? 'fb--ok' : 'fb--bad'}">
-    <b>${ok ? 'Р’РµСЂРЅРѕ!' : 'РќРµРІРµСЂРЅРѕ'}</b>
-    ${!ok && right ? ` вЂ” РїСЂР°РІРёР»СЊРЅС‹Р№ РѕС‚РІРµС‚: <b>${right}</b>${sound}` : (ok && sound ? sound : '')}
+    <b>${ok ? 'Верно!' : 'Неверно'}</b>
+    ${!ok && right ? ` — правильный ответ: <b>${right}</b>${sound}` : (ok && sound ? sound : '')}
     ${card.explain ? `<span class="fb__ex">${esc(card.explain)}</span>` : ''}
   </div>
-  <button class="btn btn--primary" id="next">РџСЂРѕРґРѕР»Р¶РёС‚СЊ</button>`;
+  <button class="btn btn--primary" id="next">Продолжить</button>`;
 }
 
-/** РЎРѕРґРµСЂР¶РёРјРѕРµ РєР°СЂС‚РѕС‡РєРё Р·Р°РІРёСЃРёС‚ РѕС‚ С‚РёРїР° РІРѕРїСЂРѕСЃР°. */
+/** Содержимое карточки зависит от типа вопроса. */
 function sessionBody(item) {
   const card = item.card || {};
   const type = card.type || 'flip';
   const ans = session.answer || null;
 
   if (type === 'choice') {
-    /* РІР°СЂРёР°РЅС‚С‹ РїРµСЂРµРјРµС€РёРІР°СЋС‚СЃСЏ, РЅРѕ РїРѕСЂСЏРґРѕРє Р·Р°РїРѕРјРёРЅР°РµС‚СЃСЏ: РїСЂРё РїРѕРІС‚РѕСЂРЅРѕР№
-       РѕС‚СЂРёСЃРѕРІРєРµ СЌС‚РѕР№ Р¶Рµ РєР°СЂС‚РѕС‡РєРё (РїР»Р°С€РєР° СЂРµР·СѓР»СЊС‚Р°С‚Р°) РєРЅРѕРїРєРё РЅРµ РїСЂС‹РіР°СЋС‚ */
+    /* варианты перемешиваются, но порядок запоминается: при повторной
+       отрисовке этой же карточки (плашка результата) кнопки не прыгают */
     const key = item.id + '#' + session.index;
     if (!session.optMap || session.optMap.key !== key) {
       const order = (card.options || []).map((_, i) => i);
@@ -634,15 +634,15 @@ function sessionBody(item) {
     return `<div class="flip__q">${esc(card.q)}</div>
       ${ans ? '' : `
         <input class="ans-input" id="ans-in" type="text" autocomplete="off"
-          autocapitalize="off" autofocus placeholder="РќР°РїРёС€РёС‚Рµ РѕС‚РІРµС‚">
-        <button class="btn btn--primary" id="check">РџСЂРѕРІРµСЂРёС‚СЊ</button>`}
+          autocapitalize="off" autofocus placeholder="Напишите ответ">
+        <button class="btn btn--primary" id="check">Проверить</button>`}
       ${ans ? feedbackHtml(ans.ok, card) : ''}`;
   }
 
   if (type === 'build') {
-    /* РїР»РёС‚РєРё-СЃР»РѕРІР° РєР°Рє РІ Duolingo: СЃРѕР±РёСЂР°РµРј С„СЂР°Р·Сѓ РїРѕСЃС‚СѓРєРёРІР°РЅРёРµРј.
-       РџРѕСЂСЏРґРѕРє РїР»РёС‚РѕРє РїРµСЂРµРјРµС€РёРІР°РµС‚СЃСЏ Рё Р·Р°РїРѕРјРёРЅР°РµС‚СЃСЏ, С‡С‚РѕР±С‹ РїСЂРё
-       РїРµСЂРµСЂРёСЃРѕРІРєРµ РєР°СЂС‚РѕС‡РєРё РѕРЅРё РЅРµ РїСЂС‹РіР°Р»Рё. */
+    /* плитки-слова как в Duolingo: собираем фразу постукиванием.
+       Порядок плиток перемешивается и запоминается, чтобы при
+       перерисовке карточки они не прыгали. */
     const key = item.id + '#' + session.index;
     if (!session.build || session.build.key !== key) {
       const order = (card.parts || []).map((_, i) => i);
@@ -660,19 +660,19 @@ function sessionBody(item) {
       .map((origI) => `<button class="tile" data-pool="${origI}">${esc(card.parts[origI])}</button>`).join('');
     return `<div class="flip__q">${esc(card.q)}</div>
       <div class="tiles">
-        <div class="tiles__row">${answerRow || '<span class="tiles__empty">РЎРѕР±РёСЂР°Р№С‚Рµ РѕС‚РІРµС‚ Р·РґРµСЃСЊ</span>'}</div>
+        <div class="tiles__row">${answerRow || '<span class="tiles__empty">Собирайте ответ здесь</span>'}</div>
         <div class="tiles__row tiles__pool">${pool}</div>
       </div>
-      ${ans ? '' : `<button class="btn btn--primary" id="check-build" ${chosen.length ? '' : 'disabled'}>РџСЂРѕРІРµСЂРёС‚СЊ</button>`}
+      ${ans ? '' : `<button class="btn btn--primary" id="check-build" ${chosen.length ? '' : 'disabled'}>Проверить</button>`}
       ${ans ? feedbackHtml(ans.ok, card) : ''}`;
   }
 
-  /* flip вЂ” С‡РµСЃС‚РЅР°СЏ СЃР°РјРѕРїСЂРѕРІРµСЂРєР° */
+  /* flip — честная самопроверка */
   return `<div class="flip__q">${esc(card.q)}</div>
     ${session.revealed
-      ? `<div class="flip__a">${esc(card.a)}${speakable(card.a) ? ' <button class="speak" id="speak" title="РџСЂРѕРёР·РЅРµСЃС‚Рё">рџ”Љ</button>' : ''}</div>
+      ? `<div class="flip__a">${esc(card.a)}${speakable(card.a) ? ' <button class="speak" id="speak" title="Произнести">🔊</button>' : ''}</div>
          <div class="flip__hint">${esc(card.hint || '')}</div>`
-      : `<button class="btn btn--primary" id="reveal">РџРѕРєР°Р·Р°С‚СЊ РѕС‚РІРµС‚</button>`}`;
+      : `<button class="btn btn--primary" id="reveal">Показать ответ</button>`}`;
 }
 
 function screenSession() {
@@ -683,19 +683,19 @@ function screenSession() {
   const st = S.cards[item.id];
   const isNew = !st;
   const type = (item.card && item.card.type) || 'flip';
-  const typeLabel = type === 'choice' ? 'РІС‹Р±РѕСЂ' : type === 'type' ? 'РІРІРѕРґ'
-    : type === 'build' ? 'СЃРѕР±РµСЂРё С„СЂР°Р·Сѓ' : 'СЃР°РјРѕРїСЂРѕРІРµСЂРєР°';
+  const typeLabel = type === 'choice' ? 'выбор' : type === 'type' ? 'ввод'
+    : type === 'build' ? 'собери фразу' : 'самопроверка';
 
   return `<div class="sess">
     <div class="sess__top">
-      <button class="icon" id="quit">вњ•</button>
+      <button class="icon" id="quit">✕</button>
       <div class="sess__bar"><i style="width:${pct}%"></i></div>
-      <div class="sess__count"><span class="hearts" title="РЎРµСЂРґРµС‡РєРё">${'вќ¤пёЏ'.repeat(Math.max(0, heartsNow()))}</span> В· ${session.correct}вњ“ ${session.wrong}вњ— В· ${session.index + 1}/${session.queue.length}</div>
+      <div class="sess__count"><span class="hearts" title="Сердечки">${'❤️'.repeat(Math.max(0, heartsNow()))}</span> · ${session.correct}✓ ${session.wrong}✗ · ${session.index + 1}/${session.queue.length}</div>
     </div>
 
     <div class="sess__skill" style="color:${item.skill.color}">
-      ${item.skill.icon} ${esc(item.skill.name)} В· ${esc(item.lesson.title)}
-      ${isNew ? '<span class="tag">РЅРѕРІР°СЏ</span>' : ''}
+      ${item.skill.icon} ${esc(item.skill.name)} · ${esc(item.lesson.title)}
+      ${isNew ? '<span class="tag">новая</span>' : ''}
       <span class="tag">${typeLabel}</span>
     </div>
 
@@ -705,12 +705,12 @@ function screenSession() {
 
     ${type === 'flip' && session.revealed ? `
       <div class="rate">
-        <div class="rate__label">РќР°СЃРєРѕР»СЊРєРѕ Р»РµРіРєРѕ РІСЃРїРѕРјРЅРёР»РѕСЃСЊ?</div>
+        <div class="rate__label">Насколько легко вспомнилось?</div>
         <div class="rate__row">
-          <button class="rate__b rate__b--bad" data-q="1">Р—Р°Р±С‹Р»</button>
-          <button class="rate__b rate__b--hard" data-q="3">РЎР»РѕР¶РЅРѕ</button>
-          <button class="rate__b rate__b--good" data-q="4">РҐРѕСЂРѕС€Рѕ</button>
-          <button class="rate__b rate__b--easy" data-q="5">Р›РµРіРєРѕ</button>
+          <button class="rate__b rate__b--bad" data-q="1">Забыл</button>
+          <button class="rate__b rate__b--hard" data-q="3">Сложно</button>
+          <button class="rate__b rate__b--good" data-q="4">Хорошо</button>
+          <button class="rate__b rate__b--easy" data-q="5">Легко</button>
         </div>
         <div class="rate__next" id="nextInfo"></div>
       </div>` : ''}
@@ -722,35 +722,35 @@ function sessionDone() {
   const total = session.correct + session.wrong;
   const acc = total ? Math.round((session.correct / total) * 100) : 0;
   return `<div class="done">
-    <div class="done__ico">рџЋ‰</div>
-    <h1 class="h1">Р—Р°РЅСЏС‚РёРµ Р·Р°РІРµСЂС€РµРЅРѕ</h1>
-    <p class="lead">${session.queue.length} ${plural(session.queue.length, 'РєР°СЂС‚РѕС‡РєР°', 'РєР°СЂС‚РѕС‡РєРё', 'РєР°СЂС‚РѕС‡РµРє')} Р·Р° ${Math.max(1, Math.round(secs / 60))} РјРёРЅ</p>
+    <div class="done__ico">🎉</div>
+    <h1 class="h1">Занятие завершено</h1>
+    <p class="lead">${session.queue.length} ${plural(session.queue.length, 'карточка', 'карточки', 'карточек')} за ${Math.max(1, Math.round(secs / 60))} мин</p>
     <div class="grid3">
-      ${statCard(session.correct, 'РІРµСЂРЅРѕ')}
-      ${statCard(session.wrong, 'РѕС€РёР±РѕРє')}
-      ${statCard(acc + '%', 'С‚РѕС‡РЅРѕСЃС‚СЊ')}
+      ${statCard(session.correct, 'верно')}
+      ${statCard(session.wrong, 'ошибок')}
+      ${statCard(acc + '%', 'точность')}
     </div>
-    <div class="done__gain">+${session.correct * 8} XP В· +${session.gems || 0} рџ’Ћ</div>
-    <button class="btn btn--primary" id="done">РџСЂРѕРґРѕР»Р¶РёС‚СЊ</button>
+    <div class="done__gain">+${session.correct * 8} XP · +${session.gems || 0} 💎</div>
+    <button class="btn btn--primary" id="done">Продолжить</button>
   </div>`;
 }
 
-/* РџР°СѓР·Р°, РєРѕРіРґР° РєРѕРЅС‡РёР»РёСЃСЊ СЃРµСЂРґРµС‡РєРё. Р—Р°РЅСЏС‚РёРµ РЅРµ С‚РµСЂСЏРµС‚СЃСЏ:
-   РїРѕСЃР»Рµ РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅРёСЏ РїСЂРѕРґРѕР»Р¶Р°РµРј СЃ С‚РѕР№ Р¶Рµ РєР°СЂС‚РѕС‡РєРё. */
+/* Пауза, когда кончились сердечки. Занятие не теряется:
+   после восстановления продолжаем с той же карточки. */
 function screenNoHearts() {
   const canBuy = (S.gems || 0) >= 30;
   return `<div class="done">
-    <div class="done__ico">рџ’”</div>
-    <h1 class="h1">РЎРµСЂРґРµС‡РєРё Р·Р°РєРѕРЅС‡РёР»РёСЃСЊ</h1>
-    <p class="lead">РћРґРЅРѕ СЃРµСЂРґРµС‡РєРѕ РІРѕР·РІСЂР°С‰Р°РµС‚СЃСЏ РєР°Р¶РґС‹Рµ 30 РјРёРЅСѓС‚. Р—Р°РЅСЏС‚РёРµ РЅР° РїР°СѓР·Рµ вЂ” РїСЂРѕРіСЂРµСЃСЃ РЅРµ РїРѕС‚РµСЂСЏРЅ.</p>
+    <div class="done__ico">💔</div>
+    <h1 class="h1">Сердечки закончились</h1>
+    <p class="lead">Одно сердечко возвращается каждые 30 минут. Занятие на паузе — прогресс не потерян.</p>
     ${canBuy
-      ? `<button class="btn btn--primary" id="hearts-buy">Р’РѕСЃСЃС‚Р°РЅРѕРІРёС‚СЊ Р·Р° 30 рџ’Ћ</button>`
-      : `<div class="card card--pad muted-note" style="margin:14px 0">РЈ РІР°СЃ ${S.gems || 0} рџ’Ћ вЂ” РЅСѓР¶РЅРѕ 30. Р“РµРјС‹ РґР°СЋС‚СЃСЏ Р·Р° РІРµСЂРЅС‹Рµ РѕС‚РІРµС‚С‹, СѓСЂРѕРєРё Рё Р·Р°РґР°РЅРёСЏ.</div>`}
-    <button class="btn btn--quiet" id="hearts-quit">Р—Р°РІРµСЂС€РёС‚СЊ Р·Р°РЅСЏС‚РёРµ</button>
+      ? `<button class="btn btn--primary" id="hearts-buy">Восстановить за 30 💎</button>`
+      : `<div class="card card--pad muted-note" style="margin:14px 0">У вас ${S.gems || 0} 💎 — нужно 30. Гемы даются за верные ответы, уроки и задания.</div>`}
+    <button class="btn btn--quiet" id="hearts-quit">Завершить занятие</button>
   </div>`;
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ СѓСЂРѕРє в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── урок ─────────────── */
 
 function screenLesson() {
   const skill = SKILLS.find((s) => s.lessons.some((l) => l.id === lessonView.id));
@@ -759,28 +759,28 @@ function screenLesson() {
 
   if (!lessonView.reading) {
     return `<div class="lesson-view">
-      <button class="icon" id="back">вЂ№</button>
+      <button class="icon" id="back">‹</button>
       <div class="sess__skill" style="color:${skill.color}">${skill.icon} ${esc(skill.name)}</div>
       <h1 class="h1">${esc(lesson.title)}</h1>
-      <div class="lead">${lesson.minutes} РјРёРЅ В· ${lesson.cards.length} ${plural(lesson.cards.length, 'РєР°СЂС‚РѕС‡РєР°', 'РєР°СЂС‚РѕС‡РєРё', 'РєР°СЂС‚РѕС‡РµРє')}</div>
+      <div class="lead">${lesson.minutes} мин · ${lesson.cards.length} ${plural(lesson.cards.length, 'карточка', 'карточки', 'карточек')}</div>
       <div class="card card--pad theory">${esc(lesson.theory)}</div>
-      <button class="btn btn--primary" id="begin">${done ? 'РџРѕРІС‚РѕСЂРёС‚СЊ РєР°СЂС‚РѕС‡РєРё' : 'РџРµСЂРµР№С‚Рё Рє РєР°СЂС‚РѕС‡РєР°Рј'}</button>
+      <button class="btn btn--primary" id="begin">${done ? 'Повторить карточки' : 'Перейти к карточкам'}</button>
     </div>`;
   }
   return screenSession();
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ РѕС‚СЂРёСЃРѕРІРєР° в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── отрисовка ─────────────── */
 
 function render() {
   const nav = document.querySelector('.nav');
 
-  /* СЃРµСЃСЃРёСЏ РїРµСЂРµР¶РёРІР°РµС‚ РїРµСЂРµР·Р°РіСЂСѓР·РєСѓ СЃС‚СЂР°РЅРёС†С‹: СЃРѕС…СЂР°РЅСЏРµРј РµС‘ РІ С…СЂР°РЅРёР»РёС‰Рµ
-     РїСЂРё РєР°Р¶РґРѕР№ РѕС‚СЂРёСЃРѕРІРєРµ Рё РІРѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј РїСЂРё Р·Р°РїСѓСЃРєРµ */
+  /* сессия переживает перезагрузку страницы: сохраняем её в хранилище
+     при каждой отрисовке и восстанавливаем при запуске */
   persistSession();
 
-  /* Р·РЅР°РєРѕРјСЃС‚РІРѕ РїРѕРєР°Р·С‹РІР°РµС‚СЃСЏ РґРѕ РІСЃРµРіРѕ РѕСЃС‚Р°Р»СЊРЅРѕРіРѕ Рё Р±РµР· РЅРёР¶РЅРµРіРѕ РјРµРЅСЋ,
-     С‡С‚РѕР±С‹ РЅРµ РѕС‚РІР»РµРєР°С‚СЊ */
+  /* знакомство показывается до всего остального и без нижнего меню,
+     чтобы не отвлекать */
   if (!S.settings.onboarded) {
     if (nav) nav.hidden = true;
     app.innerHTML = screenOnboarding();
@@ -789,8 +789,8 @@ function render() {
   }
   if (nav) nav.hidden = false;
 
-  /* РђРєРєР°СѓРЅС‚ РѕР±СЏР·Р°С‚РµР»РµРЅ: Р±РµР· РЅРµРіРѕ РєР°СЂС‚РѕС‡РєРё Рё СѓСЂРѕРєРё РЅРµРґРѕСЃС‚СѓРїРЅС‹.
-     Р“РѕСЃС‚СЊ РІРёРґРёС‚ С‚РѕР»СЊРєРѕ Р·РЅР°РєРѕРјСЃС‚РІРѕ Рё СЌРєСЂР°РЅ РІС…РѕРґР°. */
+  /* Аккаунт обязателен: без него карточки и уроки недоступны.
+     Гость видит только знакомство и экран входа. */
   if (!loggedIn()) {
     if (nav) nav.hidden = true;
     app.innerHTML = screenAuth();
@@ -824,8 +824,8 @@ function render() {
       : tab === 'awards' ? screenAwards()
       : screenMe();
     bind();
-    /* Р»РёРЅРёРё РєР°СЂС‚С‹ СЃС‡РёС‚Р°РµРј РїРѕСЃР»Рµ РІСЃС‚Р°РІРєРё РІ РґРѕРєСѓРјРµРЅС‚: РґРѕ СЌС‚РѕРіРѕ Сѓ СѓР·Р»РѕРІ
-       РµС‰С‘ РЅРµС‚ РєРѕРѕСЂРґРёРЅР°С‚ */
+    /* линии карты считаем после вставки в документ: до этого у узлов
+       ещё нет координат */
     if (tab === 'map') {
       bindMap();
       drawMapLines();
@@ -836,7 +836,7 @@ function render() {
     b.classList.toggle('is-on', b.dataset.tab === tab && !session && !lessonView && !screen);
   });
 
-  /* РєРЅРѕРїРєР° СѓСЃС‚Р°РЅРѕРІРєРё: РїРѕРєР°Р·С‹РІР°РµРј, РєРѕРіРґР° Р±СЂР°СѓР·РµСЂ РіРѕС‚РѕРІ, РёРЅР°С‡Рµ вЂ” РїРѕРґСЃРєР°Р·РєСѓ */
+  /* кнопка установки: показываем, когда браузер готов, иначе — подсказку */
   const ib = document.getElementById('install-app');
   if (ib) {
     if (window.__install) {
@@ -848,7 +848,7 @@ function render() {
   }
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ РѕР±СЂР°Р±РѕС‚С‡РёРєРё в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── обработчики ─────────────── */
 
 function bind() {
   const on = (sel, ev, fn) => {
@@ -864,8 +864,8 @@ function bind() {
 
   document.querySelectorAll('[data-lesson]').forEach((b) => {
     b.addEventListener('click', () => {
-      /* СѓСЂРѕРєРё РѕС‚РєСЂС‹РІР°СЋС‚СЃСЏ РїРѕ РѕС‡РµСЂРµРґРё: Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅРЅС‹Рµ РЅРµ РѕС‚РєСЂС‹РІР°РµРј,
-         РґР°Р¶Рµ РµСЃР»Рё РєР»РёРє РїСЂРёС€С‘Р» РїСЂРѕРіСЂР°РјРјРЅРѕ */
+      /* уроки открываются по очереди: заблокированные не открываем,
+         даже если клик пришёл программно */
       if (b.disabled) return;
       lessonView = { id: b.dataset.lesson, reading: false };
       render();
@@ -887,14 +887,14 @@ function bind() {
 
   on('#reveal', 'click', () => { session.revealed = true; render(); });
 
-  /* РІС‹Р±РѕСЂ РІР°СЂРёР°РЅС‚Р° вЂ” РѕС†РµРЅРєР° Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ */
+  /* выбор варианта — оценка автоматическая */
   document.querySelectorAll('[data-opt]').forEach((b) => {
     b.addEventListener('click', () => {
       gradeAnswer(Number(b.dataset.opt) === session.queue[session.index].card.a, Number(b.dataset.opt));
     });
   });
 
-  /* РІРІРѕРґ РѕС‚РІРµС‚Р° вЂ” СЃРІРµСЂСЏРµРј СЃ РґРѕРїСѓСЃС‚РёРјС‹РјРё С„РѕСЂРјСѓР»РёСЂРѕРІРєР°РјРё */
+  /* ввод ответа — сверяем с допустимыми формулировками */
   on('#check', 'click', () => {
     const item = session.queue[session.index];
     const given = (document.getElementById('ans-in') || {}).value || '';
@@ -902,7 +902,7 @@ function bind() {
     gradeAnswer(checkAnswer(given, item.card.accept || []), given);
   });
 
-  /* Enter РІ РїРѕР»Рµ РІРІРѕРґР° вЂ” С‚Рѕ Р¶Рµ, С‡С‚Рѕ РЅР°Р¶Р°С‚СЊ В«РџСЂРѕРІРµСЂРёС‚СЊВ» */
+  /* Enter в поле ввода — то же, что нажать «Проверить» */
   on('#ans-in', 'keydown', (e) => {
     if (e.key === 'Enter') {
       const btn = document.getElementById('check');
@@ -910,7 +910,7 @@ function bind() {
     }
   });
 
-  /* РїР»РёС‚РєРё-СЃР»РѕРІР°: РІ РѕС‚РІРµС‚ Рё РѕР±СЂР°С‚РЅРѕ */
+  /* плитки-слова: в ответ и обратно */
   document.querySelectorAll('[data-pool]').forEach((b) => {
     b.addEventListener('click', () => {
       if (!session.build) return;
@@ -934,7 +934,7 @@ function bind() {
     gradeAnswer(checkAnswer(joined, [item.card.a, ...(item.card.accept || [])]), joined);
   });
 
-  /* РґР°Р»СЊС€Рµ вЂ” Рє СЃР»РµРґСѓСЋС‰РµР№ РєР°СЂС‚РѕС‡РєРµ */
+  /* дальше — к следующей карточке */
   on('#next', 'click', () => {
     session.index++;
     session.revealed = false;
@@ -942,16 +942,16 @@ function bind() {
     render();
   });
 
-  /* СЃРµСЂРґРµС‡РєРё РєРѕРЅС‡РёР»РёСЃСЊ: РІРѕСЃСЃС‚Р°РЅРѕРІРёС‚СЊ Р·Р° РіРµРјС‹ РёР»Рё Р·Р°РІРµСЂС€РёС‚СЊ */
+  /* сердечки кончились: восстановить за гемы или завершить */
   on('#hearts-buy', 'click', () => {
-    if ((S.gems || 0) < 30) { toast('РќРµ С…РІР°С‚Р°РµС‚ РіРµРјРѕРІ', 'info'); return; }
+    if ((S.gems || 0) < 30) { toast('Не хватает гемов', 'info'); return; }
     S.gems -= 30;
     S.hearts = 5;
     S.heartsAt = Date.now();
     save();
     screen = null;
     render();
-    toast('РЎРµСЂРґРµС‡РєРё РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅС‹ вЂ” РїСЂРѕРґРѕР»Р¶Р°РµРј!', 'quest');
+    toast('Сердечки восстановлены — продолжаем!', 'quest');
   });
   on('#hearts-quit', 'click', () => {
     session = null;
@@ -969,7 +969,7 @@ function bind() {
       completeLesson(lessonId, session.correct, session.wrong);
       lessonView = null;
     } else {
-      /* РјРёРЅСѓС‚С‹ Р·Р°РЅСЏС‚РёСЏ РёРґСѓС‚ РІ РµР¶РµРґРЅРµРІРЅРѕРµ Р·Р°РґР°РЅРёРµ */
+      /* минуты занятия идут в ежедневное задание */
       addMinutes(Math.max(1, Math.round((Date.now() - session.startedAt) / 60000)));
     }
     session = null;
@@ -985,13 +985,13 @@ function bind() {
       if (q >= 3) { session.correct++; if (fresh) session.gems = (session.gems || 0) + 1; snd.ok(); }
       else { session.wrong++; loseHeart(); snd.bad(); try { navigator.vibrate && navigator.vibrate(60); } catch (e) {} }
       review(item.id, q);
-      /* РѕС€РёР±СЃСЏ вЂ” РІРµСЂРЅСѓС‚СЊ РєР°СЂС‚РѕС‡РєСѓ РІ РєРѕРЅРµС† РѕС‡РµСЂРµРґРё СЌС‚РѕРіРѕ Р·Р°РЅСЏС‚РёСЏ */
+      /* ошибся — вернуть карточку в конец очереди этого занятия */
       if (q < 3) session.queue.push(item);
       session.index++;
       session.revealed = false;
       render();
-      /* РѕС‚РїСЂР°РІР»СЏРµРј РЅР° СЃРµСЂРІРµСЂ СЃ Р·Р°РґРµСЂР¶РєРѕР№, С‡С‚РѕР±С‹ РЅРµ РґС‘СЂРіР°С‚СЊ СЃРµС‚СЊ
-         РЅР° РєР°Р¶РґС‹Р№ РѕС‚РІРµС‚ */
+      /* отправляем на сервер с задержкой, чтобы не дёргать сеть
+         на каждый ответ */
       scheduleSync();
       if (S.hearts <= 0) {
         screen = 'nohearts';
@@ -1014,7 +1014,7 @@ function bind() {
 
   on('#sound', 'change', (e) => { S.settings.sound = e.target.checked; save(); });
 
-  /* Р·Р°РіСЂСѓР·РєР° РїСЂРѕРіСЂРµСЃСЃР° РёР· С„Р°Р№Р»Р° вЂ” РїРµСЂРµРЅРѕСЃ РјРµР¶РґСѓ СѓСЃС‚СЂРѕР№СЃС‚РІР°РјРё Р±РµР· Р°РєРєР°СѓРЅС‚Р° */
+  /* загрузка прогресса из файла — перенос между устройствами без аккаунта */
   on('#import', 'click', () => {
     const f = document.getElementById('import-file');
     if (f) f.click();
@@ -1029,31 +1029,31 @@ function bind() {
         if (typeof p.xp !== 'number') throw new Error('bad');
         applyProgress(p);
         render();
-        toast('РџСЂРѕРіСЂРµСЃСЃ Р·Р°РіСЂСѓР¶РµРЅ', 'quest');
+        toast('Прогресс загружен', 'quest');
       } catch (err) {
-        toast('Р¤Р°Р№Р» РЅРµ РїРѕС…РѕР¶ РЅР° РїСЂРѕРіСЂРµСЃСЃ SkillUp', 'info');
+        toast('Файл не похож на прогресс SkillUp', 'info');
       }
     };
     rd.readAsText(file);
   });
 
   on('#reset', 'click', () => {
-    if (confirm('РЎР±СЂРѕСЃРёС‚СЊ РІРµСЃСЊ РїСЂРѕРіСЂРµСЃСЃ? Р­С‚Рѕ РЅРµР»СЊР·СЏ РѕС‚РјРµРЅРёС‚СЊ.')) {
+    if (confirm('Сбросить весь прогресс? Это нельзя отменить.')) {
       localStorage.removeItem(KEY);
       S = blank();
       render();
-      toast('РџСЂРѕРіСЂРµСЃСЃ СЃР±СЂРѕС€РµРЅ', 'info');
+      toast('Прогресс сброшен', 'info');
     }
   });
 
-  /* в”Ђв”Ђ РїСЂРѕС„РёР»СЊ Рё Р°РєРєР°СѓРЅС‚ в”Ђв”Ђ */
+  /* ── профиль и аккаунт ── */
   on('#to-auth', 'click', () => { screen = 'auth'; authMode = 'login'; authError = ''; render(); });
   on('#to-me', 'click', () => { tab = 'me'; render(); });
   on('#to-map', 'click', () => { tab = 'map'; render(); });
   on('#back-today', 'click', () => { screen = null; tab = 'today'; render(); });
   on('#to-focus', 'click', () => { screen = 'focus'; render(); });
 
-  /* в”Ђв”Ђ С„РѕРєСѓСЃ в”Ђв”Ђ */
+  /* ── фокус ── */
   document.querySelectorAll('[data-min]').forEach((b) => {
     b.addEventListener('click', () => {
       focusState.minutes = Number(b.dataset.min);
@@ -1064,7 +1064,7 @@ function bind() {
   });
   on('#focus-go', 'click', () => {
     if (focusState.running) {
-      /* РїР°СѓР·Р°: Р·Р°РїРѕРјРёРЅР°РµРј, СЃРєРѕР»СЊРєРѕ РѕСЃС‚Р°Р»РѕСЃСЊ */
+      /* пауза: запоминаем, сколько осталось */
       focusState.left = Math.max(0, Math.ceil((focusState.endAt - Date.now()) / 1000));
       focusState.running = false;
     } else {
@@ -1083,15 +1083,15 @@ function bind() {
 
   on('#logout', 'click', async () => {
     await apiLogout();
-    toast('Р’С‹ РІС‹С€Р»Рё РёР· Р°РєРєР°СѓРЅС‚Р°', 'info');
+    toast('Вы вышли из аккаунта', 'info');
     render();
   });
 
   on('#del-acc', 'click', async () => {
-    if (!confirm('РЈРґР°Р»РёС‚СЊ Р°РєРєР°СѓРЅС‚ РІРјРµСЃС‚Рµ СЃРѕ РІСЃРµРј РїСЂРѕРіСЂРµСЃСЃРѕРј РЅР° СЃРµСЂРІРµСЂРµ? Р­С‚Рѕ РЅРµР»СЊР·СЏ РѕС‚РјРµРЅРёС‚СЊ.')) return;
+    if (!confirm('Удалить аккаунт вместе со всем прогрессом на сервере? Это нельзя отменить.')) return;
     try {
       await apiDeleteAccount();
-      toast('РђРєРєР°СѓРЅС‚ СѓРґР°Р»С‘РЅ. РџСЂРѕРіСЂРµСЃСЃ РѕСЃС‚Р°Р»СЃСЏ РІ С‚РµР»РµС„РѕРЅРµ.', 'info');
+      toast('Аккаунт удалён. Прогресс остался в телефоне.', 'info');
     } catch (e) {
       toast(e.message, 'info');
     }
@@ -1102,7 +1102,7 @@ function bind() {
     setSyncState('wait');
     const r = await syncNow();
     setSyncState(r.error ? 'err' : 'ok');
-    toast(r.error ? r.error : 'РџСЂРѕРіСЂРµСЃСЃ СЃРѕС…СЂР°РЅС‘РЅ РІ Р°РєРєР°СѓРЅС‚', r.error ? 'info' : 'quest');
+    toast(r.error ? r.error : 'Прогресс сохранён в аккаунт', r.error ? 'info' : 'quest');
   });
 
   on('#redo-onboard', 'click', () => {
@@ -1114,23 +1114,23 @@ function bind() {
     render();
   });
 
-  /* СЃС‚СЂР°РЅРёС†Р° СЃ QR-РєРѕРґРѕРј: СѓРґРѕР±РЅРѕ РїРѕРєР°Р·Р°С‚СЊ РґСЂСѓРіСѓ вЂ” С‚РѕС‚ СЃРєР°РЅРёСЂСѓРµС‚ РєР°РјРµСЂРѕР№ */
+  /* страница с QR-кодом: удобно показать другу — тот сканирует камерой */
   on('#to-qr', 'click', () => { location.href = 'qr.html'; });
 
-  /* СѓСЃС‚Р°РЅРѕРІРєР° РїСЂРёР»РѕР¶РµРЅРёСЏ: РєРЅРѕРїРєР° СЂР°Р±РѕС‚Р°РµС‚ С‡РµСЂРµР· СЃРѕР±С‹С‚РёРµ Р±СЂР°СѓР·РµСЂР° */
+  /* установка приложения: кнопка работает через событие браузера */
   on('#install-app', 'click', async () => {
     if (!window.__install) return;
     window.__install.prompt();
     try {
       await window.__install.userChoice;
     } catch (e) {
-      /* РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ РїРµСЂРµРґСѓРјР°Р» вЂ” РЅРµ СЃС‚СЂР°С€РЅРѕ */
+      /* пользователь передумал — не страшно */
     }
     window.__install = null;
     render();
   });
 
-  /* в”Ђв”Ђ Р»РёРіР° Рё РјР°РіР°Р·РёРЅ в”Ђв”Ђ */
+  /* ── лига и магазин ── */
   on('#to-league', 'click', () => {
     screen = 'league';
     leagueData = null;
@@ -1143,31 +1143,31 @@ function bind() {
     loadLeague();
   });
   on('#buy-hearts', 'click', () => {
-    if ((S.gems || 0) < 30) { toast('РќРµ С…РІР°С‚Р°РµС‚ РіРµРјРѕРІ', 'info'); return; }
+    if ((S.gems || 0) < 30) { toast('Не хватает гемов', 'info'); return; }
     S.gems -= 30;
     S.hearts = 5;
     S.heartsAt = Date.now();
     save();
     render();
-    toast('РЎРµСЂРґРµС‡РєРё РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅС‹!', 'quest');
+    toast('Сердечки восстановлены!', 'quest');
   });
   on('#buy-freeze', 'click', () => {
-    if ((S.gems || 0) < 20) { toast('РќРµ С…РІР°С‚Р°РµС‚ РіРµРјРѕРІ', 'info'); return; }
+    if ((S.gems || 0) < 20) { toast('Не хватает гемов', 'info'); return; }
     S.gems -= 20;
     S.freezes = (S.freezes || 0) + 1;
     save();
     render();
-    toast('Р—Р°РјРѕСЂРѕР·РєР° РєСѓРїР»РµРЅР°', 'quest');
+    toast('Заморозка куплена', 'quest');
   });
 
-  /* РѕР·РІСѓС‡РєР° С„СЂР°Р·С‹ */
+  /* озвучка фразы */
   on('#speak', 'click', () => {
     const item = session.queue[session.index];
     if (item && typeof item.card.a === 'string') speak(item.card.a);
   });
 
-  /* Р’С‹РіСЂСѓР·РєР° РїСЂРѕРіСЂРµСЃСЃР° С„Р°Р№Р»РѕРј: РµСЃР»Рё С‡РµР»РѕРІРµРє Р·Р°С…РѕС‡РµС‚ РїРµСЂРµРЅРµСЃС‚Рё РµРіРѕ
-     РІСЂСѓС‡РЅСѓСЋ РёР»Рё РїСЂРѕСЃС‚Рѕ СЃРѕС…СЂР°РЅРёС‚СЊ РєРѕРїРёСЋ */
+  /* Выгрузка прогресса файлом: если человек захочет перенести его
+     вручную или просто сохранить копию */
   on('#export', 'click', () => {
     const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
@@ -1175,7 +1175,7 @@ function bind() {
     a.download = `skillup-${today()}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
-    toast('Р¤Р°Р№Р» СЃРѕС…СЂР°РЅС‘РЅ', 'info');
+    toast('Файл сохранён', 'info');
   });
 
   document.querySelectorAll('.nav__b').forEach((b) => {
@@ -1189,19 +1189,19 @@ function bind() {
   });
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ РЅР°РїРѕРјРёРЅР°РЅРёСЏ в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── напоминания ─────────────── */
 
 async function askNotify() {
   if (!('Notification' in window)) {
-    toast('РЈРІРµРґРѕРјР»РµРЅРёСЏ РЅРµ РїРѕРґРґРµСЂР¶РёРІР°СЋС‚СЃСЏ', 'info');
+    toast('Уведомления не поддерживаются', 'info');
     return;
   }
   const p = await Notification.requestPermission();
-  if (p === 'granted') toast('РќР°РїРѕРјРёРЅР°РЅРёРµ РІРєР»СЋС‡РµРЅРѕ', 'quest');
-  else toast('Р Р°Р·СЂРµС€РµРЅРёРµ РЅРµ РІС‹РґР°РЅРѕ', 'info');
+  if (p === 'granted') toast('Напоминание включено', 'quest');
+  else toast('Разрешение не выдано', 'info');
 }
 
-/** РџСЂРѕРІРµСЂСЏРµРј СЂР°Р· РІ РјРёРЅСѓС‚Сѓ: РµСЃР»Рё РІСЂРµРјСЏ РїРѕРґРѕС€Р»Рѕ Рё СЃРµРіРѕРґРЅСЏ РЅРµ Р·Р°РЅРёРјР°Р»РёСЃСЊ вЂ” РЅР°РїРѕРјРёРЅР°РµРј. */
+/** Проверяем раз в минуту: если время подошло и сегодня не занимались — напоминаем. */
 setInterval(() => {
   if (!S.settings.reminder || Notification?.permission !== 'granted') return;
   const now = new Date();
@@ -1211,15 +1211,15 @@ setInterval(() => {
   const key = 'notified.' + today();
   if (localStorage.getItem(key)) return;
   localStorage.setItem(key, '1');
-  new Notification('SkillUp', { body: 'РџРѕСЂР° РїРѕР·Р°РЅРёРјР°С‚СЊСЃСЏ вЂ” СЃРµСЂРёСЏ Р¶РґС‘С‚!', icon: 'icon-192.png' });
+  new Notification('SkillUp', { body: 'Пора позаниматься — серия ждёт!', icon: 'icon-192.png' });
 }, 60000);
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ СЂРµР¶РёРј С„РѕРєСѓСЃРёСЂРѕРІРєРё в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── режим фокусировки ─────────────── */
 
 let focusState = { minutes: 25, left: 25 * 60, running: false, endAt: 0 };
 
-/* РўРёРєР°СЋС‰РёР№ С‚Р°Р№РјРµСЂ: РїРѕРєР° РёРґС‘С‚ С„РѕРєСѓСЃ, РѕР±РЅРѕРІР»СЏРµРј С†РёС„РµСЂР±Р»Р°С‚ РЅР° СЌРєСЂР°РЅРµ.
-   РџРµСЂРµСЂРёСЃРѕРІС‹РІР°РµРј С‚РѕР»СЊРєРѕ СЃР°Рј СЌРєСЂР°РЅ С„РѕРєСѓСЃР° вЂ” РґСЂСѓРіРёРµ СЌРєСЂР°РЅС‹ РЅРµ С‚СЂРѕРіР°РµРј. */
+/* Тикающий таймер: пока идёт фокус, обновляем циферблат на экране.
+   Перерисовываем только сам экран фокуса — другие экраны не трогаем. */
 setInterval(() => {
   if (!focusState.running) return;
   if (Date.now() >= focusState.endAt) {
@@ -1227,7 +1227,7 @@ setInterval(() => {
     focusState.left = 0;
     completeFocus(focusState.minutes);
     snd.level();
-    toast(`Р¤РѕРєСѓСЃ Р·Р°РІРµСЂС€С‘РЅ: +${focusState.minutes * 4} XP`, 'quest');
+    toast(`Фокус завершён: +${focusState.minutes * 4} XP`, 'quest');
     if (screen === 'focus') render();
     return;
   }
@@ -1244,28 +1244,28 @@ function screenFocus() {
   const mm = String(Math.floor(left / 60)).padStart(2, '0');
   const ss = String(left % 60).padStart(2, '0');
 
-  return `<button class="icon back" id="back-today">вЂ№</button>
-  <h1 class="h1">Р РµР¶РёРј С„РѕРєСѓСЃРёСЂРѕРІРєРё</h1>
-  <p class="lead">${m} РјРёРЅСѓС‚ Р±РµР· РѕС‚РІР»РµС‡РµРЅРёР№. Р—Р° Р·Р°РІРµСЂС€С‘РЅРЅСѓСЋ СЃРµСЃСЃРёСЋ вЂ” ${m * 4} РѕРїС‹С‚Р°, РјРёРЅСѓС‚С‹ Р·Р°РЅСЏС‚РёСЏ Рё Р°РєС‚РёРІРЅС‹Р№ РґРµРЅСЊ СЃРµСЂРёРё.</p>
+  return `<button class="icon back" id="back-today">‹</button>
+  <h1 class="h1">Режим фокусировки</h1>
+  <p class="lead">${m} минут без отвлечений. За завершённую сессию — ${m * 4} опыта, минуты занятия и активный день серии.</p>
 
   <div class="focus__ring">
     ${progressRing(percent, 230, 12, '#b794ff')}
     <div class="focus__time">
       <b>${mm}:${ss}</b>
-      <span>${focusState.running ? 'РёРґС‘С‚ СЂР°Р±РѕС‚Р°вЂ¦' : 'РіРѕС‚РѕРІС‹?'}</span>
+      <span>${focusState.running ? 'идёт работа…' : 'готовы?'}</span>
     </div>
   </div>
 
   <div class="focus__pick">
-    ${[5, 15, 25, 45].map((v) => `<button class="focus__p ${m === v ? 'is-on' : ''}" data-min="${v}">${v} РјРёРЅ</button>`).join('')}
+    ${[5, 15, 25, 45].map((v) => `<button class="focus__p ${m === v ? 'is-on' : ''}" data-min="${v}">${v} мин</button>`).join('')}
   </div>
 
-  <button class="btn btn--primary" id="focus-go">${focusState.running ? 'РџР°СѓР·Р°' : (left < total ? 'РџСЂРѕРґРѕР»Р¶РёС‚СЊ' : 'РќР°С‡Р°С‚СЊ')}</button>
-  <button class="btn btn--quiet" id="focus-reset">РЎР±СЂРѕСЃРёС‚СЊ</button>
-  <p class="muted-note" style="margin-top:16px">РЎРѕРІРµС‚: СѓР±РµСЂРёС‚Рµ С‚РµР»РµС„РѕРЅ РІ РґСЂСѓРіСѓСЋ РєРѕРјРЅР°С‚Сѓ Рё Р·Р°РєСЂРѕР№С‚Рµ Р»РёС€РЅРёРµ РІРєР»Р°РґРєРё. РћРґРёРЅ РѕС‚СЂРµР·РѕРє вЂ” РѕРґРЅР° Р·Р°РґР°С‡Р°.</p>`;
+  <button class="btn btn--primary" id="focus-go">${focusState.running ? 'Пауза' : (left < total ? 'Продолжить' : 'Начать')}</button>
+  <button class="btn btn--quiet" id="focus-reset">Сбросить</button>
+  <p class="muted-note" style="margin-top:16px">Совет: уберите телефон в другую комнату и закройте лишние вкладки. Один отрезок — одна задача.</p>`;
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ Р·РІСѓРєРё в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── звуки ─────────────── */
 
 let audioCtx = null;
 function beep(freq, dur, type, gain) {
@@ -1286,7 +1286,7 @@ function beep(freq, dur, type, gain) {
     g.gain.exponentialRampToValueAtTime(0.001, t + dur);
     o.stop(t + dur + 0.02);
   } catch (e) {
-    /* Р±РµР· Р·РІСѓРєР° РїСЂРёР»РѕР¶РµРЅРёРµ РѕР±СЏР·Р°РЅРѕ СЂР°Р±РѕС‚Р°С‚СЊ */
+    /* без звука приложение обязано работать */
   }
 }
 const snd = {
@@ -1295,15 +1295,15 @@ const snd = {
   level: () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 0.22), i * 110)),
 };
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ РїСЂР°Р·РґРЅРѕРІР°РЅРёРµ СѓСЂРѕРІРЅСЏ в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── празднование уровня ─────────────── */
 
 function celebrate(level) {
   const el = document.createElement('div');
   el.className = 'celebrate';
   el.innerHTML = `<div class="celebrate__card">
-    <div class="celebrate__stars">вњЁ</div>
-    <b>РЈСЂРѕРІРµРЅСЊ ${level}!</b>
-    <span>Р Р°СЃС‚С‘С‚Рµ РЅР° РіР»Р°Р·Р°С…</span>
+    <div class="celebrate__stars">✨</div>
+    <b>Уровень ${level}!</b>
+    <span>Растёте на глазах</span>
   </div>`;
   document.body.appendChild(el);
   setTimeout(() => el.classList.add('out'), 1800);
@@ -1311,7 +1311,7 @@ function celebrate(level) {
   snd.level();
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ СЃРµСЃСЃРёСЏ РїРµСЂРµР¶РёРІР°РµС‚ РїРµСЂРµР·Р°РіСЂСѓР·РєСѓ в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── сессия переживает перезагрузку ─────────────── */
 
 function persistSession() {
   try {
@@ -1321,11 +1321,11 @@ function persistSession() {
       localStorage.removeItem('skillup.session');
     }
   } catch (e) {
-    /* РїСЂРёРІР°С‚РЅС‹Р№ СЂРµР¶РёРј вЂ” РїСЂРѕСЃС‚Рѕ РЅРµ СЃРѕС…СЂР°РЅСЏРµРј СЃРµСЃСЃРёСЋ */
+    /* приватный режим — просто не сохраняем сессию */
   }
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ РёС‚РѕРіРё РїСЂРѕС€Р»РѕР№ РЅРµРґРµР»Рё в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── итоги прошлой недели ─────────────── */
 
 function lastWeekSummary() {
   const now = new Date();
@@ -1347,42 +1347,42 @@ function lastWeekSummary() {
   return { answers, minutes, lessons };
 }
 
-  /* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ Р»РёРіР° РЅРµРґРµР»Рё в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+  /* ─────────────── лига недели ─────────────── */
 
 let leagueData = null;
 
 function screenLeague() {
   const isLogged = loggedIn();
-  return `<button class="icon back" id="back-today">вЂ№</button>
-  <h1 class="h1">Р›РёРіР° РЅРµРґРµР»Рё</h1>
-  <p class="lead">РљС‚Рѕ РЅР°Р±СЂР°Р» Р±РѕР»СЊС€Рµ РѕРїС‹С‚Р° Р·Р° СЌС‚Сѓ РЅРµРґРµР»СЋ вЂ” СЃС‡РёС‚Р°РµС‚СЃСЏ СЃ РїРѕРЅРµРґРµР»СЊРЅРёРєР°.</p>
+  return `<button class="icon back" id="back-today">‹</button>
+  <h1 class="h1">Лига недели</h1>
+  <p class="lead">Кто набрал больше опыта за эту неделю — считается с понедельника.</p>
   ${!isLogged
     ? `<div class="card card--pad">
-        <p class="muted-note" style="margin:0 0 14px">Р›РёРіР° СЃСЂР°РІРЅРёРІР°РµС‚ РёРіСЂРѕРєРѕРІ РїРѕ Р°РєРєР°СѓРЅС‚Р°Рј вЂ” РІРѕР№РґРёС‚Рµ, С‡С‚РѕР±С‹ СѓС‡Р°СЃС‚РІРѕРІР°С‚СЊ. РџСЂРѕРіСЂРµСЃСЃ РїСЂРё СЌС‚РѕРј РѕСЃС‚Р°РЅРµС‚СЃСЏ РІ С‚РµР»РµС„РѕРЅРµ.</p>
-        <button class="btn btn--primary" id="to-auth">Р’РѕР№С‚Рё РёР»Рё СЃРѕР·РґР°С‚СЊ Р°РєРєР°СѓРЅС‚</button>
+        <p class="muted-note" style="margin:0 0 14px">Лига сравнивает игроков по аккаунтам — войдите, чтобы участвовать. Прогресс при этом останется в телефоне.</p>
+        <button class="btn btn--primary" id="to-auth">Войти или создать аккаунт</button>
       </div>`
     : leagueData === null
-      ? `<div class="card card--pad"><p class="muted-note" style="margin:0">Р—Р°РіСЂСѓР¶Р°РµРј С‚Р°Р±Р»РёС†СѓвЂ¦</p></div>`
+      ? `<div class="card card--pad"><p class="muted-note" style="margin:0">Загружаем таблицу…</p></div>`
       : leagueData.error
-        ? `<div class="card card--pad"><p class="muted-note" style="margin:0">РќРµ СѓРґР°Р»РѕСЃСЊ Р·Р°РіСЂСѓР·РёС‚СЊ Р»РёРіСѓ: ${esc(leagueData.error)}</p></div>`
+        ? `<div class="card card--pad"><p class="muted-note" style="margin:0">Не удалось загрузить лигу: ${esc(leagueData.error)}</p></div>`
         : leagueRows()}
-  ${isLogged ? `<button class="btn btn--quiet" id="league-refresh">РћР±РЅРѕРІРёС‚СЊ</button>` : ''}`;
+  ${isLogged ? `<button class="btn btn--quiet" id="league-refresh">Обновить</button>` : ''}`;
 }
 
 function leagueRows() {
   const board = (leagueData && leagueData.board) || [];
   if (!board.length) {
-    return `<div class="card card--pad"><p class="muted-note" style="margin:0">РџРѕРєР° РІ Р»РёРіРµ РїСѓСЃС‚Рѕ вЂ” РЅР°Р±РµСЂРёС‚Рµ РѕРїС‹С‚, С‡С‚РѕР±С‹ РїРѕСЏРІРёС‚СЊСЃСЏ РІ С‚Р°Р±Р»РёС†Рµ.</p></div>`;
+    return `<div class="card card--pad"><p class="muted-note" style="margin:0">Пока в лиге пусто — наберите опыт, чтобы появиться в таблице.</p></div>`;
   }
-  const medals = ['рџҐ‡', 'рџҐ€', 'рџҐ‰'];
+  const medals = ['🥇', '🥈', '🥉'];
   const rows = board.slice(0, 20).map((u, i) => `
     <div class="lg__row ${u.me ? 'is-me' : ''}">
       <span class="lg__pos">${i < 3 ? medals[i] : (i + 1)}</span>
-      <span class="lg__name">${esc(u.name)}${u.me ? ' <i>(РІС‹)</i>' : ''}</span>
+      <span class="lg__name">${esc(u.name)}${u.me ? ' <i>(вы)</i>' : ''}</span>
       <b class="lg__xp">${u.xp}</b>
     </div>`).join('');
   return `<div class="card card--pad lg">
-    <div class="lg__head">РРіСЂРѕРє В· РѕРїС‹С‚ Р·Р° РЅРµРґРµР»СЋ</div>
+    <div class="lg__head">Игрок · опыт за неделю</div>
     ${rows}
   </div>`;
 }
@@ -1396,7 +1396,7 @@ async function loadLeague() {
   render();
 }
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ РѕР·РІСѓС‡РєР° в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── озвучка ─────────────── */
 
 function speak(text, lang) {
   try {
@@ -1407,16 +1407,16 @@ function speak(text, lang) {
     u.rate = 0.88;
     window.speechSynthesis.speak(u);
   } catch (e) {
-    /* Р±РµР· СЃРёРЅС‚РµР·Р° СЂРµС‡Рё РїСЂРёР»РѕР¶РµРЅРёРµ СЂР°Р±РѕС‚Р°РµС‚ РєР°Рє СЂР°РЅСЊС€Рµ */
+    /* без синтеза речи приложение работает как раньше */
   }
 }
 
-/** РћР·РІСѓС‡РёРІР°С‚СЊ СЃС‚РѕРёС‚ С„СЂР°Р·С‹ СЃ Р»Р°С‚РёРЅРёС†РµР№ вЂ” СЂСѓСЃСЃРєРёР№ СЃРёРЅС‚РµР· РѕСЃС‚Р°РІРёРј СЃРёСЃС‚РµРјРµ. */
+/** Озвучивать стоит фразы с латиницей — русский синтез оставим системе. */
 const speakable = (text) => typeof text === 'string' && /[A-Za-z]{3,}/.test(text);
 
-/* в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ Р·Р°РїСѓСЃРє в”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђв”Ђ */
+/* ─────────────── запуск ─────────────── */
 
-/* РЎРµСЃСЃРёСЏ, РїСЂРµСЂРІР°РЅРЅР°СЏ РїРµСЂРµР·Р°РіСЂСѓР·РєРѕР№, РІРѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµС‚СЃСЏ */
+/* Сессия, прерванная перезагрузкой, восстанавливается */
 try {
   const saved = JSON.parse(localStorage.getItem('skillup.session') || 'null');
   if (saved && saved.session) {
@@ -1427,14 +1427,14 @@ try {
   }
   localStorage.removeItem('skillup.session');
 } catch (e) {
-  /* РїРѕРІСЂРµР¶РґС‘РЅРЅР°СЏ СЃРµСЃСЃРёСЏ вЂ” РЅР°С‡РёРЅР°РµРј Р·Р°РЅРѕРІРѕ */
+  /* повреждённая сессия — начинаем заново */
 }
 
-/* РњРµРЅСЋ Рё СЃРѕРґРµСЂР¶РёРјРѕРµ СЃРІСЏР·С‹РІР°СЋС‚СЃСЏ РІРЅСѓС‚СЂРё bind() РїСЂРё РєР°Р¶РґРѕР№ РѕС‚СЂРёСЃРѕРІРєРµ,
-   РїРѕСЌС‚РѕРјСѓ Р·РґРµСЃСЊ С‚РѕР»СЊРєРѕ РїРµСЂРІС‹Р№ Р·Р°РїСѓСЃРє. */
+/* Меню и содержимое связываются внутри bind() при каждой отрисовке,
+   поэтому здесь только первый запуск. */
 render();
 
-/* РЎРѕРѕР±С‰Р°РµРј Р±СЂР°СѓР·РµСЂСѓ, С‡С‚Рѕ РїСЂРёР»РѕР¶РµРЅРёРµ РіРѕС‚РѕРІРѕ Рє СѓСЃС‚Р°РЅРѕРІРєРµ */
+/* Сообщаем браузеру, что приложение готово к установке */
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   window.__install = e;
