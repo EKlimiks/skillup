@@ -1,0 +1,27 @@
+#!/usr/bin/env php
+<?php
+
+use Illuminate\Foundation\Application;
+
+define('LARAVEL_START', microtime(true));
+
+// Проверяем, установлены ли зависимости через Composer
+if (is_file(__DIR__ . '/vendor/autoload.php')) {
+    require __DIR__ . '/vendor/autoload.php';
+} elseif (is_file(__DIR__ . '/../vendor/autoload.php')) {
+    // Проект установлен как пакет внутри vendor/
+    require __DIR__ . '/../vendor/autoload.php';
+} else {
+    fwrite(STDERR, 'Зависимости не установлены. Выполните: composer install' . PHP_EOL);
+    exit(1);
+}
+
+// Подхватываем скомпилированные файлы фреймворка, если они есть
+$compiledPath = __DIR__ . '/cache/compiled.php';
+
+/** @var Application $app */
+$app = require_once __DIR__ . '/app.php';
+
+$status = $app->handleCommand(new Symfony\Component\Console\Input\ArgvInput());
+
+exit($status);

@@ -1,0 +1,33 @@
+# Зависимости
+node_modules/
+vendor/
+
+# Сборка и артефакты
+dist/
+build/
+public/build/
+public/hot
+
+# Секреты и окружение
+.env
+.env.*
+!.env.example
+!.env.testing
+
+# Логи и кэш Laravel
+*.log
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+.phpunit.result.cache
+.phpunit.cache
+
+# ОС и редакторы
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+__pycache__/
+*.pyc
