@@ -420,8 +420,7 @@ function shuffleChoices() {
     for (const lesson of skill.lessons) {
       for (const card of lesson.cards) {
         if (card.type !== 'choice' || !Array.isArray(card.options) || card.options.length < 3) continue;
-        const shift = [...card.q].reduce((n, ch) => n + ch.charCodeAt(0), 0) % card.options.length;
-        if (!shift) continue;
+        const shift = ([...card.q].reduce((n, ch) => n + ch.charCodeAt(0), 0) % card.options.length) || 1;
         const correct = card.options[card.a];
         card.options = card.options.slice(shift).concat(card.options.slice(0, shift));
         card.a = card.options.indexOf(correct);
