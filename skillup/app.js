@@ -730,7 +730,7 @@ function sessionDone() {
       ${statCard(session.wrong, 'ошибок')}
       ${statCard(acc + '%', 'точность')}
     </div>
-    <div class="done__gain">+${session.correct * 8} XP · +${session.gems || 0} 💎</div>
+    <div class="done__gain">+${session.correct * 5} XP · +${session.gems || 0} 💎</div>
     <button class="btn btn--primary" id="done">Продолжить</button>
   </div>`;
 }
