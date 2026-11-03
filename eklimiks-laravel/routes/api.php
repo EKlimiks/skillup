@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RepairController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\SkillupController;
 use App\Http\Controllers\Api\TradeInController;
 use Illuminate\Support\Facades\Route;
 
@@ -113,6 +114,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Отзывы
     Route::post('reviews', [ReviewController::class, 'store']);
+
+    // SkillUp: прогресс приложения, объединение с другого устройства, лига
+    Route::get('skillup/progress', [SkillupController::class, 'show']);
+    Route::put('skillup/progress', [SkillupController::class, 'update']);
+    Route::post('skillup/merge', [SkillupController::class, 'merge']);
+    Route::get('skillup/league', [SkillupController::class, 'league']);
+    Route::delete('skillup/account', [SkillupController::class, 'destroyAccount']);
 });
 
 // ---------------------------------------------------------------------

@@ -6,6 +6,10 @@
 
 **Репозиторий:** <https://github.com/EKlimiks/eklimiks-top>
 
+**Дополнительно:** [SkillUp](skillup/README.md) — PWA-приложение для развития навыков
+(уроки, интервальное повторение, лига) на том же сервере:
+<https://full-emerald.vps.ktk-45.ru/skillup>
+
 ---
 
 ## 🚀 Быстрый старт: посмотреть сайт

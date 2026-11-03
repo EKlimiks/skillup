@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkillUp — отсканируйте, чтобы установить</title>
+<style>
+  :root{--accent:#b794ff;--line:rgba(186,150,255,.22);--muted:#9389b8}
+  *{box-sizing:border-box}
+  body{
+    margin:0;min-height:100vh;display:grid;place-items:center;
+    background:#0c0518;color:#fff;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background-image:
+      radial-gradient(62% 44% at 14% -2%, rgba(139,92,246,.30), transparent 62%),
+      radial-gradient(48% 38% at 92% 8%, rgba(244,114,182,.16), transparent 66%),
+      radial-gradient(58% 46% at 52% 102%, rgba(59,30,140,.44), transparent 70%);
+    background-attachment:fixed;
+  }
+  .wrap{width:min(560px,94vw);padding:34px 0}
+  .card{
+    background:linear-gradient(165deg,rgba(139,92,246,.16),rgba(139,92,246,.04));
+    border:1px solid var(--line);border-radius:22px;padding:30px;
+    box-shadow:0 16px 48px rgba(84,36,180,.28), inset 0 1px 0 rgba(255,255,255,.06);
+    text-align:center;
+  }
+  .logo{
+    width:64px;height:64px;border-radius:19px;margin:0 auto 14px;display:block;
+    box-shadow:0 14px 36px rgba(139,92,246,.5);
+  }
+  h1{margin:0 0 6px;font-size:1.5rem;letter-spacing:-.02em}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--muted);margin:0 0 22px;font-size:.95rem}
+  .qr{
+    width:min(300px,72vw);aspect-ratio:1;border-radius:18px;margin:0 auto 16px;
+    background:#fff;padding:10px;display:block;
+    box-shadow:0 18px 50px rgba(84,36,180,.4);
+  }
+  .url{
+    display:inline-block;font-family:ui-monospace,Consolas,monospace;font-size:.86rem;
+    color:var(--accent);text-decoration:none;border:1px solid var(--line);
+    border-radius:99px;padding:8px 18px;margin-bottom:24px;
+  }
+  .how{text-align:left;border-top:1px solid var(--line);padding-top:18px;font-size:.88rem;color:#cfc8e8}
+  .how b{color:#fff}
+  .how p{margin:8px 0}
+  .link{color:var(--accent)}
+  footer{margin-top:18px;color:var(--muted);font-size:.78rem;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <img class="logo" src="icon-192.png" alt="SkillUp">
+    <h1>Skill<span>Up</span></h1>
+    <p class="sub">Отсканируйте камерой телефона — приложение откроется сразу</p>
+    <img class="qr" src="qr.png" alt="QR-код приложения SkillUp">
+    <div>
+      <a class="url" href="/skillup/">full-emerald.vps.ktk-45.ru/skillup</a>
+    </div>
+
+    <div class="how">
+      <b>📱 iPhone:</b>
+      <p>Наведите камеру на код → тапните появившуюся ссылку → в Safari нажмите
+      «Поделиться» → <b>«На экран Домой»</b>. Появится иконка приложения.</p>
+      <b>🤖 Android:</b>
+      <p>Наведите камеру или откройте QR-сканер → откройте ссылку →
+      Chrome предложит <b>«Установить приложение»</b>.</p>
+      <p style="color:var(--muted)">Работает и без установки — просто откройте
+      <a class="link" href="/skillup/">ссылку</a>. Прогресс хранится в телефоне,
+      приложение работает офлайн.</p>
+      <p style="color:var(--muted);font-size:.8rem">Версия QR без логотипа для печати:
+      <a class="link" href="qr-plain.png">qr-plain.png</a></p>
+    </div>
+  </div>
+  <footer>SkillUp · короткие уроки, интервальное повторение, награды</footer>
+</div>
+</body>
+</html>
