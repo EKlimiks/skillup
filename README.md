@@ -1,8 +1,10 @@
-﻿# EKlimiks — магазин техники Apple с Trade-In, ремонтом и бронированием
+# EKlimiks — магазин техники Apple с Trade-In, ремонтом и бронированием
 
 Учебный итоговый проект: **React + Laravel + MySQL**. Магазин продаёт только технику Apple
 (актуальная линейка 2026 года), принимает устройства по Trade-In, записывает в сервис,
 бронирует товар в салоне и имеет личный кабинет с админ-панелью.
+
+**Репозиторий:** <https://github.com/EKlimiks/eklimiks-top>
 
 ---
 
@@ -269,7 +271,7 @@ mysql -e "CREATE DATABASE eklimiks CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode
 mysql -e "CREATE USER 'eklimiks'@'localhost' IDENTIFIED BY 'пароль'; GRANT ALL ON eklimiks.* TO 'eklimiks'@'localhost';"
 
 # 4. Код
-git clone <ваш-репозиторий> /var/www/eklimiks
+git clone https://github.com/EKlimiks/eklimiks-top.git /var/www/eklimiks
 cd /var/www/eklimiks/eklimiks-laravel
 cp .env.example .env && composer install --no-dev --optimize-autoloader
 php artisan key:generate
