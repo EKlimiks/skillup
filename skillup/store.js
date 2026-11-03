@@ -111,11 +111,33 @@ function save() {
   }
 }
 
+/**
+ * Полный сброс локального прогресса.
+ *
+ * Нужен при регистрации: иначе прогресс, наработанный на этом
+ * устройстве под старым аккаунтом, «переезжает» в новый — и новый
+ * пользователь видит чужие уроки и серию. Флаги знакомства сохраняем,
+ * чтобы не заставлять проходить его заново.
+ */
+function resetLocalProgress() {
+  const onboarded = S.settings && S.settings.onboarded;
+  const picked = S.settings && S.settings.picked;
+  try { localStorage.removeItem(KEY); } catch (e) { /* нечего чистить */ }
+  S = blank();
+  if (onboarded) {
+    S.settings.onboarded = true;
+    S.settings.picked = picked || [];
+  }
+  save();
+}
+
 /* ─────────────── опыт и уровни ─────────────── */
 
 /** Сколько опыта нужно, чтобы перейти с уровня n на следующий. */
 function xpForLevel(n) {
-  return 100 + (n - 1) * 50;
+  /* Кривая заметно круче, чем в первой версии: первые уровни ещё
+     берутся быстро, но дальше каждый требует всё больше опыта. */
+  return 150 + (n - 1) * 100;
 }
 
 /** Текущий уровень и прогресс внутри него. */
@@ -175,6 +197,8 @@ function completeFocus(minutes) {
  * @param {number} q качество ответа: 5 легко, 4 хорошо, 3 сложно, 1 ошибка
  */
 function review(cardId, q) {
+  /* карточка новая — до этого её ещё не проходили */
+  const isNew = !S.cards[cardId];
   const c = S.cards[cardId] || { ef: 2.5, interval: 0, due: 0, reps: 0, lapses: 0 };
 
   if (q < 3) {
@@ -202,7 +226,9 @@ function review(cardId, q) {
     S.stats.correct++;
     S.combo++;
     S.bestCombo = Math.max(S.bestCombo, S.combo);
-    addGems(1);          // гем за верный ответ
+    /* гемы — только за новые карточки: повторение уже пройденного
+       не должно превращаться в бесконечный источник валюты */
+    if (isNew) addGems(1);
     addXp(8);            // опыт за верный ответ — сразу, как в Duolingo
   } else {
     S.stats.wrong++;
@@ -426,7 +452,7 @@ function completeLesson(lessonId, correct, wrong) {
   if (first) addXp(60);
   /* опыт за сами ответы начисляется в review() по каждому верному —
      здесь добавляем только бонус за прохождение урока */
-  addGems(first ? 10 : 3);   // гемы за урок
+  if (first) addGems(10);   // гемы только за первое прохождение урока
 
   checkAchievements();
   refreshQuests();
@@ -436,12 +462,12 @@ function completeLesson(lessonId, correct, wrong) {
 /**
  * Сердечки (как в Duolingo).
  *
- * Ошибка отнимает одно сердечко, всего их пять. Каждые 30 минут
+ * Ошибка отнимает одно сердечко, всего их пять. Каждые 10 минут
  * возвращается одно — поэтому не страшно ошибиться, но бездумно
  * кликать невыгодно. Возврат не происходит мгновенно: так есть стимул
  * отвечать вдумчиво, а не перебирать варианты.
  */
-const HEART_REFILL_MS = 30 * 60000;
+const HEART_REFILL_MS = 10 * 60000;
 const HEARTS_MAX = 5;
 
 function heartsNow() {

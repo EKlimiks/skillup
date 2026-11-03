@@ -88,7 +88,10 @@ async function apiRegister(name, email, password, password_confirmation) {
     body: { name, email, password, password_confirmation, device_name: 'SkillUp Web' },
   });
   setAuth({ token: d.token, user: d.user });
-  /* сразу отправляем то, что успели наработать без аккаунта */
+  /* Новый аккаунт начинается с чистого листа. Без сброса локальный
+     прогресс с этого устройства уезжал в только что созданный аккаунт:
+     новый пользователь видел чужие уроки, опыт и серию дней. */
+  resetLocalProgress();
   const r = await syncNow({ pushLocal: true });
   setSyncState(r.error ? 'err' : 'ok');
   return d;

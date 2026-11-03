@@ -33,9 +33,9 @@ function screenOnboarding() {
       </div>
       <p class="ob__lead">Развивайте навыки короткими уроками.<br>По 5 минут в день — и через месяц заметите разницу.</p>
       <div class="ob__feats">
-        <div class="ob__feat"><b>60</b><span>карточек</span></div>
-        <div class="ob__feat"><b>4</b><span>навыка</span></div>
-        <div class="ob__feat"><b>15</b><span>наград</span></div>
+        <div class="ob__feat"><b>${SKILLS.reduce((n, s) => n + s.lessons.reduce((m, l) => m + l.cards.length, 0), 0)}</b><span>карточек</span></div>
+        <div class="ob__feat"><b>${SKILLS.length}</b><span>навыков</span></div>
+        <div class="ob__feat"><b>${ACHIEVEMENTS.length}</b><span>наград</span></div>
       </div>
       <button class="btn btn--primary" id="ob-next">Начать</button>
       <button class="btn btn--quiet" id="ob-skip">Пропустить знакомство</button>
