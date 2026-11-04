@@ -2,7 +2,7 @@
 node_modules/
 vendor/
 
-# Сборка и артефакты
+# Сборка
 dist/
 build/
 public/build/
@@ -12,7 +12,6 @@ public/hot
 .env
 .env.*
 !.env.example
-!.env.testing
 
 # Логи и кэш Laravel
 *.log
@@ -21,9 +20,8 @@ storage/framework/cache/data/*
 storage/framework/sessions/*
 storage/framework/views/*
 .phpunit.result.cache
-.phpunit.cache
 
-# ОС и редакторы
+# Системные файлы и редакторы
 .DS_Store
 Thumbs.db
 desktop.ini
@@ -32,11 +30,6 @@ desktop.ini
 __pycache__/
 *.pyc
 
-# Временные скриншоты и отладочные папки
+# Временные папки разработки
 _shots/
 _vps/
-_ref/
-_check/
-_bug/
-_recover/
-_shot/
