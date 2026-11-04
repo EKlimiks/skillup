@@ -1,0 +1,18 @@
+{
+  "name": "SkillUp — развитие навыков",
+  "short_name": "SkillUp",
+  "description": "Короткие уроки, ежедневные задания и награды. Интервальное повторение помогает не забывать изученное.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07060d",
+  "theme_color": "#0a0912",
+  "lang": "ru",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

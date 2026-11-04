@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0a0912">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SkillUp">
+<meta name="description" content="SkillUp — короткие уроки, ежедневные задания и награды для развития навыков">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="styles.css">
+<title>SkillUp</title>
+</head>
+<body>
+
+<div id="app"></div>
+
+<nav class="nav">
+  <button class="nav__b" data-tab="today">
+    <span class="nav__i">◎</span><span class="nav__t">Сегодня</span>
+  </button>
+  <button class="nav__b" data-tab="skills">
+    <span class="nav__i">▦</span><span class="nav__t">Навыки</span>
+  </button>
+  <button class="nav__b" data-tab="stats">
+    <span class="nav__i">◔</span><span class="nav__t">Статистика</span>
+  </button>
+  <button class="nav__b" data-tab="awards">
+    <span class="nav__i">★</span><span class="nav__t">Награды</span>
+  </button>
+</nav>
+
+<div id="toasts"></div>
+
+<script src="content.js"></script>
+<script src="cloud.js"></script>
+<script src="store.js"></script>
+<script src="map.js"></script>
+<script src="onboarding.js"></script>
+<script src="app.js"></script>
+
+<script>
+/* Офлайн-режим: файлы кладутся в кеш, поэтому приложение открывается
+   и без интернета — например, в метро. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

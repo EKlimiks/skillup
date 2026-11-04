@@ -1,0 +1,15 @@
+# Текстовые файлы — LF в репозитории, чтобы не ломались скрипты на сервере
+* text=auto eol=lf
+
+# Shell-скрипты
+*.sh text eol=lf
+
+# Бинарные файлы
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
